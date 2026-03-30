@@ -1,0 +1,268 @@
+<script>
+(function() {
+  'use strict';
+
+  // ===== State =====
+  var state = {
+    step: 0,
+    concern: '',
+    protectTarget: '',
+    neededThing: '',
+    name: '',
+    phone: '',
+    interests: [],
+    generatedMessage: ''
+  };
+
+  var sections = [];
+  var isSubmitting = false;
+
+  // ===== Init =====
+  document.addEventListener('DOMContentLoaded', function() {
+    sections = [
+      document.getElementById('intro'),
+      document.getElementById('q1'),
+      document.getElementById('q2'),
+      document.getElementById('q3'),
+      document.getElementById('info'),
+      document.getElementById('loading'),
+      document.getElementById('result')
+    ];
+
+    showSection(0);
+    bindEvents();
+  });
+
+  // ===== Section Navigation =====
+  function showSection(index) {
+    state.step = index;
+
+    sections.forEach(function(s, i) {
+      s.classList.remove('active');
+    });
+
+    // Small delay for animation
+    setTimeout(function() {
+      sections[index].classList.add('active');
+    }, 30);
+
+    updateProgress(index);
+  }
+
+  function updateProgress(step) {
+    var bar = document.getElementById('progressBar');
+    var text = document.getElementById('progressText');
+    var dots = document.querySelectorAll('.progress-dot');
+
+    if (step === 0 || step === 5 || step === 6) {
+      bar.classList.remove('visible');
+      return;
+    }
+
+    bar.classList.add('visible');
+    text.textContent = step + '/5';
+
+    dots.forEach(function(dot, i) {
+      dot.classList.remove('active', 'done');
+      if (i + 1 < step) dot.classList.add('done');
+      if (i + 1 === step) dot.classList.add('active');
+    });
+  }
+
+  // ===== Event Binding =====
+  function bindEvents() {
+    // Intro CTA
+    document.getElementById('btnStart').addEventListener('click', function() {
+      showSection(1);
+    });
+
+    // Choice cards
+    document.querySelectorAll('.choice-card').forEach(function(card) {
+      card.addEventListener('click', function() {
+        var question = this.dataset.question;
+        var value = this.dataset.value;
+
+        // Visual feedback
+        var siblings = this.parentElement.querySelectorAll('.choice-card');
+        siblings.forEach(function(s) { s.classList.remove('selected'); });
+        this.classList.add('selected');
+
+        // Save state and advance
+        setTimeout(function() {
+          if (question === 'concern') {
+            state.concern = value;
+            showSection(2);
+          } else if (question === 'protectTarget') {
+            state.protectTarget = value;
+            showSection(3);
+          } else if (question === 'neededThing') {
+            state.neededThing = value;
+            showSection(4);
+          }
+        }, 280);
+      });
+    });
+
+    // Interest chips
+    document.querySelectorAll('.interest-chip').forEach(function(chip) {
+      chip.addEventListener('click', function() {
+        this.classList.toggle('selected');
+        var val = this.dataset.value;
+        var idx = state.interests.indexOf(val);
+        if (idx > -1) {
+          state.interests.splice(idx, 1);
+        } else {
+          state.interests.push(val);
+        }
+      });
+    });
+
+    // Submit
+    document.getElementById('btnSubmit').addEventListener('click', function() {
+      if (isSubmitting) return;
+      if (!validateForm()) return;
+      submitForm();
+    });
+
+    // Retry
+    document.getElementById('btnRetry').addEventListener('click', function() {
+      resetState();
+      showSection(0);
+    });
+  }
+
+  // ===== Form Validation =====
+  function validateForm() {
+    var valid = true;
+    var nameInput = document.getElementById('inputName');
+    var phoneInput = document.getElementById('inputPhone');
+    var nameErr = document.getElementById('nameError');
+    var phoneErr = document.getElementById('phoneError');
+
+    // Reset
+    nameInput.classList.remove('error');
+    phoneInput.classList.remove('error');
+    nameErr.classList.remove('visible');
+    phoneErr.classList.remove('visible');
+
+    state.name = nameInput.value.trim();
+    state.phone = phoneInput.value.trim();
+
+    if (!state.name) {
+      nameInput.classList.add('error');
+      nameErr.classList.add('visible');
+      nameInput.focus();
+      valid = false;
+    }
+
+    if (!state.phone) {
+      phoneInput.classList.add('error');
+      phoneErr.classList.add('visible');
+      if (valid) phoneInput.focus();
+      valid = false;
+    } else if (!/^[\d\-\s+()]{8,}$/.test(state.phone)) {
+      phoneInput.classList.add('error');
+      phoneErr.textContent = '올바른 연락처를 입력해주세요';
+      phoneErr.classList.add('visible');
+      if (valid) phoneInput.focus();
+      valid = false;
+    }
+
+    return valid;
+  }
+
+  // ===== Submit =====
+  function submitForm() {
+    isSubmitting = true;
+    showSection(5); // Loading
+
+    var payload = {
+      name: state.name,
+      phone: state.phone,
+      concern: state.concern,
+      protectTarget: state.protectTarget,
+      neededThing: state.neededThing,
+      interests: state.interests,
+      userAgent: navigator.userAgent
+    };
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        isSubmitting = false;
+        if (result && result.success) {
+          state.generatedMessage = result.message;
+          renderResult(result.name, result.message);
+          // Delay to keep loading screen visible
+          setTimeout(function() {
+            showSection(6);
+          }, 1500);
+        } else {
+          showToast('잠시 후 다시 시도해주세요');
+          showSection(4);
+        }
+      })
+      .withFailureHandler(function(err) {
+        isSubmitting = false;
+        showToast('연결이 불안정해요. 다시 시도해주세요.');
+        showSection(4);
+      })
+      .submitResponse(payload);
+  }
+
+  // ===== Render Result =====
+  function renderResult(name, messages) {
+    var titleEl = document.getElementById('resultTitle');
+    var msgEl = document.getElementById('resultMessage');
+
+    titleEl.textContent = (name || '당신') + '님을 위한 포춘쿠키 메시지';
+
+    var html = '';
+    messages.forEach(function(line) {
+      html += '<p>' + escapeHtml(line) + '</p>';
+    });
+    msgEl.innerHTML = html;
+  }
+
+  // ===== Reset =====
+  function resetState() {
+    state = {
+      step: 0,
+      concern: '',
+      protectTarget: '',
+      neededThing: '',
+      name: '',
+      phone: '',
+      interests: [],
+      generatedMessage: ''
+    };
+
+    // Clear selections
+    document.querySelectorAll('.choice-card.selected').forEach(function(c) {
+      c.classList.remove('selected');
+    });
+    document.querySelectorAll('.interest-chip.selected').forEach(function(c) {
+      c.classList.remove('selected');
+    });
+    document.getElementById('inputName').value = '';
+    document.getElementById('inputPhone').value = '';
+  }
+
+  // ===== Toast =====
+  function showToast(msg) {
+    var toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('visible');
+    setTimeout(function() {
+      toast.classList.remove('visible');
+    }, 2800);
+  }
+
+  // ===== Utils =====
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+})();
+</script>

@@ -1,0 +1,24 @@
+.DS_Store
+.idea/
+.vscode/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+node_modules/
+cdk.out/
+
+# Secrets (never commit)
+.env
+.env.*
+*.pem
+*.key
+*service-account*.json
+google-service-account.json
+
+# Build artifacts
+dist/
+build/

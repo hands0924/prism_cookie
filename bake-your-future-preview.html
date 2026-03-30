@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Bake Your Future | Prism</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@300;400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+:root {
+  --bg: #FFF7ED;
+  --card: #FFFDF8;
+  --text: #3E2D25;
+  --text-sub: #7A685E;
+  --cta: #FF7A59;
+  --cta-hover: #E8694A;
+  --accent: #FFC857;
+  --prism: linear-gradient(135deg, #FF8A5B, #FFD166, #7BDFF2, #B8F2E6);
+  --prism-subtle: linear-gradient(135deg, rgba(255,138,91,0.15), rgba(255,209,102,0.15), rgba(123,223,242,0.15), rgba(184,242,230,0.15));
+  --shadow-soft: 0 2px 16px rgba(62,45,37,0.06);
+  --shadow-card: 0 4px 24px rgba(62,45,37,0.08);
+  --shadow-glow: 0 0 32px rgba(255,122,89,0.15);
+  --radius: 20px;
+  --radius-sm: 12px;
+  --transition: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); min-height: 100dvh; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+
+.app { max-width: 480px; margin: 0 auto; min-height: 100dvh; position: relative; overflow: hidden; }
+.app::before { content: ''; position: fixed; top: -120px; right: -80px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(255,200,87,0.12) 0%, transparent 70%); border-radius: 50%; pointer-events: none; z-index: 0; }
+.app::after { content: ''; position: fixed; bottom: -100px; left: -60px; width: 260px; height: 260px; background: radial-gradient(circle, rgba(123,223,242,0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none; z-index: 0; }
+
+.progress-bar { position: fixed; top: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; z-index: 100; padding: 16px 24px 12px; background: linear-gradient(180deg, var(--bg) 60%, transparent); display: none; }
+.progress-bar.visible { display: flex; align-items: center; gap: 12px; }
+.progress-text { font-size: 13px; font-weight: 500; color: var(--text-sub); white-space: nowrap; min-width: 28px; }
+.progress-dots { display: flex; gap: 8px; align-items: center; }
+.progress-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(62,45,37,0.1); transition: all var(--transition); }
+.progress-dot.active { background: var(--cta); box-shadow: 0 0 8px rgba(255,122,89,0.35); transform: scale(1.15); }
+.progress-dot.done { background: var(--accent); }
+
+.section { display: none; min-height: 100dvh; padding: 72px 24px 40px; flex-direction: column; position: relative; z-index: 1; opacity: 0; transform: translateY(12px); }
+.section.active { display: flex; animation: sectionIn 320ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+@keyframes sectionIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+.intro { justify-content: center; align-items: center; text-align: center; padding-top: 0; gap: 0; }
+.intro-brand { font-size: 13px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase; color: var(--text-sub); margin-bottom: 20px; }
+.intro-cookie { width: 140px; height: 140px; margin: 0 auto 28px; position: relative; }
+.cookie-body { width: 100%; height: 100%; animation: cookieFloat 3s ease-in-out infinite; }
+@keyframes cookieFloat { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-8px) rotate(2deg); } }
+.cookie-svg { width: 100%; height: 100%; }
+.intro-title { font-family: 'Gaegu', cursive; font-size: 36px; font-weight: 700; color: var(--text); line-height: 1.2; margin-bottom: 12px; }
+.intro-subtitle { font-size: 17px; color: var(--text); font-weight: 400; margin-bottom: 8px; }
+.intro-desc { font-size: 14px; color: var(--text-sub); line-height: 1.6; margin-bottom: 40px; max-width: 300px; }
+
+.question-section { padding-top: 80px; }
+.question-title { font-family: 'Gaegu', cursive; font-size: 26px; font-weight: 700; color: var(--text); line-height: 1.35; margin-bottom: 12px; }
+.question-helper { font-size: 14px; color: var(--text-sub); line-height: 1.5; margin-bottom: 28px; }
+
+.choices { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.choice-card { background: var(--card); border: 2px solid transparent; border-radius: var(--radius-sm); padding: 18px 20px; font-size: 16px; font-weight: 400; color: var(--text); cursor: pointer; transition: all var(--transition); box-shadow: var(--shadow-soft); text-align: left; position: relative; overflow: hidden; min-height: 56px; display: flex; align-items: center; -webkit-user-select: none; user-select: none; }
+.choice-card::before { content: ''; position: absolute; inset: 0; background: var(--prism-subtle); opacity: 0; transition: opacity var(--transition); }
+.choice-card:active { transform: scale(0.98); }
+.choice-card.selected { border-color: var(--cta); background: #FFF5F0; transform: scale(1.02); box-shadow: var(--shadow-glow); }
+.choice-card.selected::before { opacity: 1; }
+.choice-icon { margin-right: 14px; font-size: 22px; flex-shrink: 0; }
+
+.info-section { padding-top: 80px; }
+.info-title { font-family: 'Gaegu', cursive; font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.info-desc { font-size: 14px; color: var(--text-sub); line-height: 1.5; margin-bottom: 28px; }
+.form-group { margin-bottom: 20px; }
+.form-label { display: block; font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 8px; }
+.form-input { width: 100%; padding: 16px 18px; border: 2px solid rgba(62,45,37,0.1); border-radius: var(--radius-sm); font-size: 16px; font-family: inherit; color: var(--text); background: var(--card); transition: border-color var(--transition); outline: none; -webkit-appearance: none; }
+.form-input:focus { border-color: var(--cta); }
+.form-input::placeholder { color: rgba(62,45,37,0.3); }
+.form-input.error { border-color: #E85A4F; animation: shake 300ms ease; }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.error-msg { font-size: 12px; color: #E85A4F; margin-top: 6px; display: none; }
+.error-msg.visible { display: block; }
+
+.interest-section { margin-top: 8px; margin-bottom: 24px; }
+.interest-label { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 12px; }
+.interest-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.interest-chip { padding: 10px 16px; border-radius: 24px; border: 1.5px solid rgba(62,45,37,0.12); background: var(--card); font-size: 14px; color: var(--text-sub); cursor: pointer; transition: all var(--transition); -webkit-user-select: none; user-select: none; }
+.interest-chip.selected { border-color: var(--cta); background: #FFF5F0; color: var(--cta); font-weight: 500; }
+.interest-chip:active { transform: scale(0.97); }
+.privacy-note { font-size: 12px; color: var(--text-sub); line-height: 1.5; margin-bottom: 28px; opacity: 0.7; }
+
+.btn-cta { display: flex; align-items: center; justify-content: center; width: 100%; padding: 18px 24px; background: var(--cta); color: white; border: none; border-radius: var(--radius-sm); font-size: 17px; font-weight: 700; font-family: inherit; cursor: pointer; transition: all var(--transition); box-shadow: 0 4px 16px rgba(255,122,89,0.3); min-height: 56px; position: relative; overflow: hidden; -webkit-user-select: none; user-select: none; }
+.btn-cta::after { content: ''; position: absolute; inset: 0; background: var(--prism); opacity: 0; transition: opacity 400ms; }
+.btn-cta:active { transform: scale(0.98); }
+.btn-cta:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+
+.loading-section { justify-content: center; align-items: center; text-align: center; padding-top: 0; }
+.loading-cookie { width: 120px; height: 120px; margin-bottom: 32px; animation: loadingSpin 2s ease-in-out infinite; }
+@keyframes loadingSpin { 0% { transform: rotate(0deg) scale(1); } 25% { transform: rotate(5deg) scale(1.05); } 50% { transform: rotate(0deg) scale(1); } 75% { transform: rotate(-5deg) scale(1.05); } 100% { transform: rotate(0deg) scale(1); } }
+.loading-glow { width: 160px; height: 160px; position: absolute; border-radius: 50%; background: var(--prism); opacity: 0.12; filter: blur(40px); animation: glowPulse 2s ease-in-out infinite; }
+@keyframes glowPulse { 0%, 100% { transform: scale(0.9); opacity: 0.08; } 50% { transform: scale(1.2); opacity: 0.18; } }
+.loading-title { font-family: 'Gaegu', cursive; font-size: 24px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.loading-desc { font-size: 14px; color: var(--text-sub); }
+
+.result-section { justify-content: center; align-items: center; padding-top: 60px; padding-bottom: 40px; }
+.result-label { font-size: 12px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--text-sub); margin-bottom: 8px; }
+.result-title { font-family: 'Gaegu', cursive; font-size: 24px; font-weight: 700; color: var(--text); margin-bottom: 28px; text-align: center; }
+.result-card { background: var(--card); border-radius: var(--radius); padding: 32px 24px; box-shadow: var(--shadow-card); width: 100%; position: relative; overflow: hidden; margin-bottom: 32px; }
+.result-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--prism); }
+.result-card::after { content: ''; position: absolute; bottom: -40px; right: -40px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(255,200,87,0.08) 0%, transparent 70%); border-radius: 50%; }
+.result-message { font-size: 16px; line-height: 1.75; color: var(--text); }
+.result-message p { margin-bottom: 16px; }
+.result-message p:last-child { margin-bottom: 0; }
+.result-message p:first-child { font-weight: 500; }
+.result-message p:last-child { color: var(--cta); font-weight: 500; }
+.result-capture-hint { font-size: 12px; color: var(--text-sub); text-align: center; margin-bottom: 24px; opacity: 0.7; }
+.result-actions { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+.btn-insta { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px 24px; background: var(--prism); color: white; border: none; border-radius: var(--radius-sm); font-size: 16px; font-weight: 700; font-family: inherit; cursor: pointer; transition: all var(--transition); box-shadow: 0 4px 16px rgba(255,122,89,0.2); min-height: 56px; text-decoration: none; }
+.btn-insta:active { transform: scale(0.98); }
+.btn-retry { display: flex; align-items: center; justify-content: center; width: 100%; padding: 16px 24px; background: transparent; color: var(--text-sub); border: 1.5px solid rgba(62,45,37,0.12); border-radius: var(--radius-sm); font-size: 15px; font-weight: 500; font-family: inherit; cursor: pointer; transition: all var(--transition); min-height: 56px; }
+.btn-retry:active { transform: scale(0.98); background: rgba(62,45,37,0.03); }
+
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text); color: white; padding: 14px 24px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; z-index: 200; transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1); white-space: nowrap; box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
+.toast.visible { transform: translateX(-50%) translateY(0); }
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) { .section { padding-bottom: calc(40px + env(safe-area-inset-bottom)); } }
+
+/* Preview badge */
+.preview-badge { position: fixed; top: 12px; right: 12px; background: rgba(62,45,37,0.8); color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; z-index: 999; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="preview-badge">PREVIEW</div>
+<div class="app">
+
+  <div class="progress-bar" id="progressBar">
+    <span class="progress-text" id="progressText">1/5</span>
+    <div class="progress-dots">
+      <div class="progress-dot"></div>
+      <div class="progress-dot"></div>
+      <div class="progress-dot"></div>
+      <div class="progress-dot"></div>
+      <div class="progress-dot"></div>
+    </div>
+  </div>
+
+  <!-- 0. Intro -->
+  <div class="section intro" id="intro">
+    <div class="intro-brand">Prism</div>
+    <div class="intro-cookie">
+      <div class="cookie-body">
+        <svg class="cookie-svg" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="70" cy="95" rx="50" ry="12" fill="#FFE0B2" opacity="0.3"/>
+          <path d="M30 70 C30 40, 70 20, 70 50 C70 20, 110 40, 110 70 C110 90, 90 100, 70 95 C50 100, 30 90, 30 70Z" fill="#FFB74D"/>
+          <path d="M30 70 C30 40, 70 20, 70 50 C70 65, 50 80, 30 70Z" fill="#FFCC80"/>
+          <path d="M65 50 C68 60, 72 60, 75 50" stroke="#E09940" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <rect x="55" y="28" width="40" height="18" rx="2" fill="#FFFDF8" transform="rotate(-8 75 37)"/>
+          <line x1="60" y1="33" x2="85" y2="31" stroke="#FFB74D" stroke-width="1" opacity="0.4" transform="rotate(-8 75 37)"/>
+          <line x1="60" y1="38" x2="80" y2="36" stroke="#FFB74D" stroke-width="1" opacity="0.3" transform="rotate(-8 75 37)"/>
+          <circle cx="25" cy="40" r="2" fill="#FFD166" opacity="0.6"><animate attributeName="opacity" values="0.6;0.2;0.6" dur="2s" repeatCount="indefinite"/></circle>
+          <circle cx="115" cy="45" r="1.5" fill="#7BDFF2" opacity="0.5"><animate attributeName="opacity" values="0.5;0.15;0.5" dur="2.5s" repeatCount="indefinite"/></circle>
+          <circle cx="105" cy="30" r="2" fill="#FF8A5B" opacity="0.4"><animate attributeName="opacity" values="0.4;0.1;0.4" dur="1.8s" repeatCount="indefinite"/></circle>
+          <circle cx="35" cy="55" r="1.5" fill="#B8F2E6" opacity="0.5"><animate attributeName="opacity" values="0.5;0.2;0.5" dur="2.2s" repeatCount="indefinite"/></circle>
+        </svg>
+      </div>
+    </div>
+    <div class="intro-title">Bake your future</div>
+    <div class="intro-subtitle">당신의 미래 레시피를 만들어보세요</div>
+    <div class="intro-desc">지금의 마음을 고르면,<br>당신만의 포춘쿠키 메시지가 완성돼요</div>
+    <button class="btn-cta" id="btnStart">🥠 포춘쿠키 메시지 만들기</button>
+  </div>
+
+  <!-- 1. Q1 -->
+  <div class="section question-section" id="q1">
+    <div class="question-header">
+      <div class="question-title">지금 내 삶에서<br>가장 불안한 것은?</div>
+      <div class="question-helper">지금 가장 가까운 마음을 골라주세요</div>
+    </div>
+    <div class="choices">
+      <div class="choice-card" data-question="concern" data-value="아플 때"><span class="choice-icon">🤕</span> 아플 때</div>
+      <div class="choice-card" data-question="concern" data-value="가족/파트너 문제"><span class="choice-icon">💔</span> 가족/파트너 문제</div>
+      <div class="choice-card" data-question="concern" data-value="일이 끊길 때"><span class="choice-icon">📉</span> 일이 끊길 때</div>
+      <div class="choice-card" data-question="concern" data-value="노후"><span class="choice-icon">🏡</span> 노후</div>
+      <div class="choice-card" data-question="concern" data-value="갑작스러운 사고"><span class="choice-icon">⚡</span> 갑작스러운 사고</div>
+    </div>
+  </div>
+
+  <!-- 2. Q2 -->
+  <div class="section question-section" id="q2">
+    <div class="question-header">
+      <div class="question-title">지금 내가 가장<br>지키고 싶은 대상은?</div>
+      <div class="question-helper">마음이 먼저 향하는 대상을 골라주세요</div>
+    </div>
+    <div class="choices">
+      <div class="choice-card" data-question="protectTarget" data-value="나 자신"><span class="choice-icon">🪞</span> 나 자신</div>
+      <div class="choice-card" data-question="protectTarget" data-value="파트너"><span class="choice-icon">💑</span> 파트너</div>
+      <div class="choice-card" data-question="protectTarget" data-value="가족"><span class="choice-icon">👨‍👩‍👧</span> 가족</div>
+      <div class="choice-card" data-question="protectTarget" data-value="반려동물"><span class="choice-icon">🐾</span> 반려동물</div>
+      <div class="choice-card" data-question="protectTarget" data-value="아직 잘 모르겠다"><span class="choice-icon">🌀</span> 아직 잘 모르겠다</div>
+    </div>
+  </div>
+
+  <!-- 3. Q3 -->
+  <div class="section question-section" id="q3">
+    <div class="question-header">
+      <div class="question-title">지금 내 삶에<br>가장 필요한 건?</div>
+      <div class="question-helper">당신의 미래 레시피에 마지막 재료를 넣어보세요</div>
+    </div>
+    <div class="choices">
+      <div class="choice-card" data-question="neededThing" data-value="정보"><span class="choice-icon">📖</span> 정보</div>
+      <div class="choice-card" data-question="neededThing" data-value="안전망"><span class="choice-icon">🛡️</span> 안전망</div>
+      <div class="choice-card" data-question="neededThing" data-value="응원"><span class="choice-icon">📣</span> 응원</div>
+      <div class="choice-card" data-question="neededThing" data-value="계획"><span class="choice-icon">📋</span> 계획</div>
+      <div class="choice-card" data-question="neededThing" data-value="연결"><span class="choice-icon">🤝</span> 연결</div>
+    </div>
+  </div>
+
+  <!-- 4. Info -->
+  <div class="section info-section" id="info">
+    <div class="info-header">
+      <div class="info-title">거의 다 왔어요 ✨</div>
+      <div class="info-desc">당신의 포춘쿠키를 열기 전에, 몇 가지만 알려주세요</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="inputName">이름 또는 닉네임</label>
+      <input class="form-input" type="text" id="inputName" placeholder="부담 없이 닉네임도 좋아요" autocomplete="given-name">
+      <div class="error-msg" id="nameError">이름 또는 닉네임을 입력해주세요</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="inputPhone">연락처</label>
+      <input class="form-input" type="tel" id="inputPhone" placeholder="010-0000-0000" autocomplete="tel">
+      <div class="error-msg" id="phoneError">연락처를 입력해주세요</div>
+    </div>
+    <div class="interest-section">
+      <div class="interest-label">프리즘지점에서 이런 소식도 받아볼래요?</div>
+      <div class="interest-chips">
+        <div class="interest-chip" data-value="활동소식">앞으로 활동소식을 받고 싶어요</div>
+        <div class="interest-chip" data-value="보험상담">보험상담을 의뢰하고 싶어요</div>
+        <div class="interest-chip" data-value="채용/이직">채용, 이직을 알아보고 싶어요</div>
+      </div>
+    </div>
+    <div class="privacy-note">남겨주신 정보는 프리즘지점의 안내 및 연락을 위해서만 사용됩니다.</div>
+    <button class="btn-cta" id="btnSubmit">🥠 내 포춘쿠키 열기</button>
+  </div>
+
+  <!-- 5. Loading -->
+  <div class="section loading-section" id="loading">
+    <div class="loading-glow"></div>
+    <div class="loading-cookie">
+      <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="60" cy="82" rx="40" ry="10" fill="#FFE0B2" opacity="0.25"/>
+        <path d="M25 60 C25 35, 60 18, 60 44 C60 18, 95 35, 95 60 C95 78, 78 86, 60 82 C42 86, 25 78, 25 60Z" fill="#FFB74D"/>
+        <path d="M25 60 C25 35, 60 18, 60 44 C60 56, 42 68, 25 60Z" fill="#FFCC80"/>
+        <path d="M55 44 C57 52, 63 52, 65 44" stroke="#E09940" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <circle cx="15" cy="35" r="3" fill="#FFD166"><animate attributeName="opacity" values="0;0.7;0" dur="1.5s" repeatCount="indefinite"/><animate attributeName="r" values="1;3;1" dur="1.5s" repeatCount="indefinite"/></circle>
+        <circle cx="105" cy="40" r="2.5" fill="#7BDFF2"><animate attributeName="opacity" values="0;0.6;0" dur="1.8s" repeatCount="indefinite" begin="0.3s"/></circle>
+        <circle cx="95" cy="25" r="2" fill="#FF8A5B"><animate attributeName="opacity" values="0;0.5;0" dur="2s" repeatCount="indefinite" begin="0.6s"/></circle>
+        <circle cx="25" cy="50" r="2" fill="#B8F2E6"><animate attributeName="opacity" values="0;0.6;0" dur="1.6s" repeatCount="indefinite" begin="0.9s"/></circle>
+      </svg>
+    </div>
+    <div class="loading-title">당신의 미래를 굽는 중이에요...</div>
+    <div class="loading-desc">마음의 재료를 조합하고 있어요</div>
+  </div>
+
+  <!-- 6. Result -->
+  <div class="section result-section" id="result">
+    <div class="result-label">Prism Fortune Recipe</div>
+    <div class="result-title" id="resultTitle">당신을 위한 포춘쿠키 메시지</div>
+    <div class="result-card">
+      <div class="result-message" id="resultMessage"></div>
+    </div>
+    <div class="result-capture-hint">📸 캡처해서 간직해보세요</div>
+    <div class="result-actions">
+      <a class="btn-insta" href="https://www.instagram.com/prism.fin/" target="_blank" rel="noopener">@prism.fin 보러 가기</a>
+      <button class="btn-retry" id="btnRetry">🔄 다시 만들어보기</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  var state = { step: 0, concern: '', protectTarget: '', neededThing: '', name: '', phone: '', interests: [], generatedMessage: '' };
+  var sections = [];
+
+  // ===== Message Data (client-side for preview) =====
+  var q1Msgs = {
+    '아플 때': ['당신은 아플 때 삶이 흔들리지 않기를 바라는 마음이 커 보여요.','몸의 불안은 일상 전체를 흔들 수 있기에, 지금의 걱정은 아주 현실적이고도 중요한 감각이에요.','당신은 건강의 문제를 단지 개인의 문제가 아니라 삶의 기반으로 느끼고 있어요.'],
+    '가족/파트너 문제': ['당신은 관계의 균열이 삶 전체에 미치는 무게를 잘 알고 있어요.','소중한 사람과의 관계가 흔들릴 때, 마음 한가운데가 먼저 불안해진다는 걸 이미 겪어본 것 같아요.','당신에게 관계는 스쳐 지나가는 감정이 아니라 삶을 지탱하는 중요한 축이에요.'],
+    '일이 끊길 때': ['당신은 삶의 리듬이 무너질 때 찾아오는 불안을 아주 현실적으로 바라보고 있어요.','일의 불확실성 앞에서도 버텨온 시간이 있었기에, 지금의 걱정은 결코 가볍지 않아요.','당신은 안정적인 내일이 얼마나 큰 힘이 되는지 누구보다 잘 알고 있어요.'],
+    '노후': ['당신은 오늘만이 아니라 오래 이어질 삶의 시간을 함께 바라보고 있어요.','아직 오지 않은 시간을 준비하고 싶다는 마음은, 당신이 삶을 책임감 있게 대하고 있다는 뜻이기도 해요.','먼 미래를 걱정할 수 있다는 건 그만큼 오래, 잘 살아가고 싶다는 마음의 표현이에요.'],
+    '갑작스러운 사고': ['당신은 예고 없이 찾아오는 변수 앞에서 삶이 얼마나 쉽게 흔들릴 수 있는지 알고 있어요.','우연한 사고가 남기는 흔들림을 가볍게 넘기지 않는 당신의 감각은 매우 현실적이에요.','예상할 수 없는 순간에도 나와 내 삶을 지키고 싶다는 마음이 분명하게 느껴져요.']
+  };
+  var q2Msgs = {
+    '나 자신': ['지금 당신은 무엇보다도 스스로를 잃지 않는 삶을 바라고 있고,','당신이 지키고 싶은 첫 번째 대상이 나 자신이라는 건, 이미 중요한 회복의 감각을 알고 있다는 뜻이고,','나 자신을 지키려는 선택은 결코 이기적인 것이 아니라 앞으로를 위한 단단한 시작이에요. 그래서'],
+    '파트너': ['당신에게 파트너는 함께 미래를 상상하고 싶은 소중한 존재이고,','누군가와 나란히 살아가는 마음이 지금 당신의 선택을 더 진지하게 만들고 있고,','파트너를 지키고 싶다는 마음에는 사랑만이 아니라 책임과 용기도 함께 담겨 있어요. 그래서'],
+    '가족': ['당신은 가족이라는 울타리를 오래 지켜내고 싶은 마음이 커 보이고,','가족을 떠올리는 당신의 선택에는 삶을 함께 견디고 이어가려는 마음이 담겨 있고,','누군가의 안부와 일상을 지키고 싶다는 마음이 지금의 당신을 움직이고 있어요. 그래서'],
+    '반려동물': ['당신에게 반려동물은 돌봄과 애정이 구체적인 일상이 되는 존재이고,','말보다 더 깊은 방식으로 서로를 의지하는 존재를 지키고 싶은 마음이 느껴지고,','함께 살아가는 작은 존재의 안온함이 당신에게 큰 의미라는 게 전해져요. 그래서'],
+    '아직 잘 모르겠다': ['아직 무엇을 가장 먼저 지켜야 할지 천천히 살피고 있는 중일 수 있고,','선명한 답을 아직 정하지 못했다는 건, 그만큼 삶을 가볍게 고르지 않고 있다는 뜻이고,','지금은 대상을 정하기보다 내 마음의 방향을 알아가는 시간일 수 있어요. 그래서']
+  };
+  var q3Msgs = {
+    '정보': ['지금은 막연한 불안보다 선명한 정보가 더 필요해 보여요.','알수록 덜 흔들리고 이해할수록 더 준비할 수 있다는 감각이 지금의 당신에게 중요해 보여요.','당신은 불안을 견디는 것보다, 제대로 알고 선택하는 힘을 원하고 있어요.'],
+    '안전망': ['더 안전하게 기대설 수 있는 기반을 필요로 하고 있어요.','삶의 흔들림 속에서도 무너지지 않게 받쳐주는 안전망이 지금의 당신에게 큰 힘이 되어줄 거예요.','당신은 강해지는 것만큼이나 지켜질 수 있는 조건을 중요하게 여기고 있어요.'],
+    '응원': ['지금은 정답보다도 마음을 붙잡아주는 응원이 더 필요해 보여요.','잘하고 있다는 신호, 계속 가도 된다는 응원이 지금의 당신에게 가장 큰 힘이 될 수 있어요.','당신은 해결책뿐 아니라 마음을 잃지 않게 해주는 온기를 필요로 하고 있어요.'],
+    '계획': ['지금은 막연한 다짐보다 구체적인 계획이 더 필요해 보여요.','한 걸음씩 정리된 계획은 불안을 줄이고 삶을 더 또렷하게 만들어줄 거예요.','당신은 버티는 하루보다 준비된 내일을 더 원하고 있어요.'],
+    '연결': ['지금은 혼자가 아니라는 감각과 좋은 연결이 큰 힘이 되어줄 거예요.','필요한 순간 손을 내밀 수 있는 연결은 삶을 훨씬 단단하게 만들어줘요.','당신은 정보나 제도 이전에, 믿고 이어질 수 있는 관계의 힘을 필요로 하고 있어요.']
+  };
+  var closings = [
+    '오늘 고른 마음의 재료들이 당신의 미래를 조금 더 다정하고 단단하게 구워줄 거예요.',
+    '지금의 선택은 불안을 없애기보다, 삶을 더 선명하게 돌보는 방향으로 당신을 이끌 거예요.',
+    '당신이 지키고 싶은 것을 잊지 않는 한, 다음 계절의 삶도 분명 더 단단해질 거예요.',
+    '오늘 받은 이 작은 포춘이 당신의 내일에 오래 남는 힌트가 되길 바라요.',
+    '서두르지 않아도 괜찮아요. 당신의 미래는 이미 천천히, 그러나 분명하게 익어가고 있어요.'
+  ];
+
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function generateMessage(c, p, n) {
+    var l1 = pick(q1Msgs[c] || q1Msgs['아플 때']);
+    var l2a = pick(q2Msgs[p] || q2Msgs['나 자신']);
+    var l2b = pick(q3Msgs[n] || q3Msgs['정보']);
+    var l3 = pick(closings);
+    return [l1, l2a + ' ' + l2b, l3];
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    sections = [document.getElementById('intro'), document.getElementById('q1'), document.getElementById('q2'), document.getElementById('q3'), document.getElementById('info'), document.getElementById('loading'), document.getElementById('result')];
+    showSection(0);
+
+    document.getElementById('btnStart').addEventListener('click', function() { showSection(1); });
+
+    document.querySelectorAll('.choice-card').forEach(function(card) {
+      card.addEventListener('click', function() {
+        var q = this.dataset.question, v = this.dataset.value;
+        this.parentElement.querySelectorAll('.choice-card').forEach(function(s) { s.classList.remove('selected'); });
+        this.classList.add('selected');
+        setTimeout(function() {
+          if (q === 'concern') { state.concern = v; showSection(2); }
+          else if (q === 'protectTarget') { state.protectTarget = v; showSection(3); }
+          else if (q === 'neededThing') { state.neededThing = v; showSection(4); }
+        }, 280);
+      });
+    });
+
+    document.querySelectorAll('.interest-chip').forEach(function(chip) {
+      chip.addEventListener('click', function() {
+        this.classList.toggle('selected');
+        var val = this.dataset.value;
+        var idx = state.interests.indexOf(val);
+        if (idx > -1) state.interests.splice(idx, 1);
+        else state.interests.push(val);
+      });
+    });
+
+    document.getElementById('btnSubmit').addEventListener('click', function() {
+      var nameInput = document.getElementById('inputName');
+      var phoneInput = document.getElementById('inputPhone');
+      var nameErr = document.getElementById('nameError');
+      var phoneErr = document.getElementById('phoneError');
+      nameInput.classList.remove('error'); phoneInput.classList.remove('error');
+      nameErr.classList.remove('visible'); phoneErr.classList.remove('visible');
+
+      state.name = nameInput.value.trim();
+      state.phone = phoneInput.value.trim();
+      var valid = true;
+
+      if (!state.name) { nameInput.classList.add('error'); nameErr.classList.add('visible'); valid = false; }
+      if (!state.phone) { phoneInput.classList.add('error'); phoneErr.classList.add('visible'); valid = false; }
+      else if (!/^[\d\-\s+()]{8,}$/.test(state.phone)) { phoneInput.classList.add('error'); phoneErr.textContent = '올바른 연락처를 입력해주세요'; phoneErr.classList.add('visible'); valid = false; }
+
+      if (!valid) return;
+
+      showSection(5);
+      var msgs = generateMessage(state.concern, state.protectTarget, state.neededThing);
+      setTimeout(function() {
+        document.getElementById('resultTitle').textContent = (state.name || '당신') + '님을 위한 포춘쿠키 메시지';
+        var html = '';
+        msgs.forEach(function(l) { html += '<p>' + l + '</p>'; });
+        document.getElementById('resultMessage').innerHTML = html;
+        showSection(6);
+      }, 1800);
+    });
+
+    document.getElementById('btnRetry').addEventListener('click', function() {
+      state = { step: 0, concern: '', protectTarget: '', neededThing: '', name: '', phone: '', interests: [], generatedMessage: '' };
+      document.querySelectorAll('.choice-card.selected, .interest-chip.selected').forEach(function(c) { c.classList.remove('selected'); });
+      document.getElementById('inputName').value = '';
+      document.getElementById('inputPhone').value = '';
+      showSection(0);
+    });
+  });
+
+  function showSection(index) {
+    state.step = index;
+    sections.forEach(function(s) { s.classList.remove('active'); });
+    setTimeout(function() { sections[index].classList.add('active'); }, 30);
+    updateProgress(index);
+  }
+
+  function updateProgress(step) {
+    var bar = document.getElementById('progressBar');
+    var text = document.getElementById('progressText');
+    var dots = document.querySelectorAll('.progress-dot');
+    if (step === 0 || step === 5 || step === 6) { bar.classList.remove('visible'); return; }
+    bar.classList.add('visible');
+    text.textContent = step + '/5';
+    dots.forEach(function(dot, i) {
+      dot.classList.remove('active', 'done');
+      if (i + 1 < step) dot.classList.add('done');
+      if (i + 1 === step) dot.classList.add('active');
+    });
+  }
+})();
+</script>
+</body>
+</html>
