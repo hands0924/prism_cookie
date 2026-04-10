@@ -1,0 +1,30 @@
+{
+  "categories": [
+    {
+      "id": "product_fidelity",
+      "label": "Product Fidelity",
+      "description": "Matches original_src flow, payload, and user-visible behavior",
+      "min_pass_score": 4
+    },
+    {
+      "id": "reliability",
+      "label": "Reliability",
+      "description": "Idempotency, retry behavior, and async safety",
+      "min_pass_score": 4
+    },
+    {
+      "id": "ux_share_quality",
+      "label": "UX and Share Quality",
+      "description": "Result rendering, OG data, Kakao/Twitter/Instagram share readiness",
+      "min_pass_score": 4
+    },
+    {
+      "id": "operational_readiness",
+      "label": "Operational Readiness",
+      "description": "Observability, abuse controls, deploy/rollback safety",
+      "min_pass_score": 4
+    }
+  ],
+  "blocking_issue_levels": ["P0", "P1"],
+  "required_checks": ["typecheck", "lint", "tests", "smoke"]
+}

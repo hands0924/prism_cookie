@@ -1,0 +1,57 @@
+
+> prism-cookie-vercel-supabase@0.1.0 loadtest:arrival
+> node scripts/loadtest-arrival.mjs
+
+{
+  "baseUrl": "https://prismcookie-rkt3t6ivg-hyunsungkims-projects.vercel.app",
+  "stages": [
+    {
+      "rps": 25,
+      "seconds": 120
+    }
+  ],
+  "stageSummaries": [
+    {
+      "index": 1,
+      "rps": 25,
+      "seconds": 120,
+      "issued": 3000
+    }
+  ],
+  "durationSec": 120.63,
+  "totalRequests": 3000,
+  "success": 3000,
+  "failed": 0,
+  "failureRatePct": 0,
+  "achievedRps": 24.87,
+  "p50ms": 20,
+  "p95ms": 830,
+  "p99ms": 900,
+  "statusCounts": {
+    "200": 3000
+  },
+  "endpointStats": {
+    "landing": {
+      "count": 2100,
+      "failed": 0,
+      "p50ms": 20,
+      "p95ms": 29,
+      "p99ms": 41
+    },
+    "submit": {
+      "count": 750,
+      "failed": 0,
+      "p50ms": 800,
+      "p95ms": 890,
+      "p99ms": 1129
+    },
+    "result": {
+      "count": 150,
+      "failed": 0,
+      "p50ms": 22,
+      "p95ms": 520,
+      "p99ms": 550
+    }
+  },
+  "submissionIdsCollected": 750
+}

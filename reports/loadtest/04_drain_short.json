@@ -1,0 +1,39 @@
+
+> prism-cookie-vercel-supabase@0.1.0 loadtest:drain
+> node scripts/loadtest-drain.mjs
+
+[cycle 1/1] events=0 messages=0 images=0 statuses=200/500/200
+{
+  "baseUrl": "https://prismcookie-rkt3t6ivg-hyunsungkims-projects.vercel.app",
+  "cycles": 1,
+  "batch": 20,
+  "calls": 3,
+  "failedCalls": 1,
+  "failureRatePct": 33.33,
+  "statusCounts": {
+    "200": 2,
+    "500": 1
+  },
+  "latencyMs": {
+    "submissions": {
+      "p50": 604,
+      "p95": 604,
+      "p99": 604
+    },
+    "messages": {
+      "p50": 1685,
+      "p95": 1685,
+      "p99": 1685
+    },
+    "images": {
+      "p50": 619,
+      "p95": 619,
+      "p99": 619
+    }
+  },
+  "totals": {
+    "submissionEvents": 0,
+    "messageJobs": 0,
+    "imageJobs": 0
+  }
+}

@@ -1,22 +1,71 @@
-# 프리즘지점 포춘쿠키 (AWS 버전)
+# Prism Cookie (Festival-Ready Baseline)
 
-Google Apps Script로 만든 포춘쿠키 웹앱을 AWS로 이전한 버전입니다.
+Supabase + Vercel architecture designed for burst traffic:
+- Hot path (`POST /api/submit`) is minimal: validate -> store submission -> enqueue `submission_events` -> return.
+- Submit path is enqueue-first; worker drain happens in dedicated dispatcher loops.
+- Optional sampled nudge (`SUBMIT_DISPATCH_NUDGE_MODULO`) triggers short dispatch runs between cron ticks.
+- Heavy work is async fan-out:
+  - `submission_events` -> counter updates + job creation
+  - `message_jobs` -> SOLAPI send
+  - `share_image_jobs` -> image generation + Storage upload
+- Workers claim jobs with Postgres `FOR UPDATE SKIP LOCKED` RPC functions to support parallel scale-out.
+- Dispatcher lease lock prevents thundering-herd overlaps when many triggers happen together.
+- Automatic retry with exponential backoff and final `FAILED` after max attempts.
+- Optional cron dispatcher endpoint exists for Pro plans or external schedulers.
 
-## 구성(목표)
-- **정적 웹**: S3 + CloudFront (`/`, `/assets/*`)
-- **API**: API Gateway (`/api/*`) → Lambda(Python)
-- **저장**: DynamoDB(원본 제출/상태) + 집계 카운터
-- **비동기 작업**: SQS + DLQ
-- **문자 발송**: SOLAPI (Lambda Worker에서 발송)
-- **Google Sheets Export**: EventBridge Scheduler → Export Lambda (1~5분)
-- **보안**: CloudFront + WAF (+ Shield Standard)
+## Setup
+1. `cp .env.example .env.local`
+2. Fill Supabase and SOLAPI secrets.
+3. Run SQL migration: `supabase/migrations/0001_init.sql`
+4. `npm install`
+5. `npm run dev`
 
-## 로컬 개발(개요)
-1) 인프라: `infra/` (AWS CDK, Python)\n
-2) 런타임 코드: `services/` (Lambda 핸들러)\n
-3) 정적 웹: `web/` (S3에 배포되는 파일)
+## Codex Harness Skills
+- Harness is skill-first and lives under `.codex/skills/harness-loop/`.
+- Use `.codex/skills/harness-loop/SKILL.md` for the builder/evaluator loop.
+- Harness artifacts and rubric are stored in `.codex/skills/harness-loop/artifacts/` and `.codex/skills/harness-loop/references/`.
 
-## 시크릿/환경변수 정책
-- **절대 레포에 비밀 값을 커밋하지 않습니다.**
-- 실제 키 값은 **AWS Secrets Manager/SSM**에 저장하고, Lambda는 **Secret ARN/Name만** 환경변수로 받습니다.
+## Worker auth
+- Internal job routes accept either:
+  - `x-worker-key: <WORKER_API_KEY>`
+  - `Authorization: Bearer <CRON_SECRET>` (for Vercel Cron)
 
+## Routes
+- `POST /api/submit`
+- `POST /api/jobs/process-submissions`
+- `POST /api/jobs/send-message`
+- `POST /api/jobs/generate-image`
+- `GET /api/cron/dispatch`
+- `POST /api/cron/dispatch`
+- `GET /r/[submissionId]`
+- `GET /api/ops/summary`
+- `GET /ops?key=YOUR_OPS_DASHBOARD_KEY`
+
+## Ops Dashboard
+- Browser dashboard: `/ops?key=...`
+- JSON summary endpoint:
+```bash
+curl -H "x-ops-key: $OPS_DASHBOARD_KEY" "$BASE_URL/api/ops/summary"
+```
+
+## Load tests
+- Submit burst:
+```bash
+LOADTEST_BASE_URL="https://YOUR_URL" LOADTEST_TOTAL=5000 LOADTEST_CONCURRENCY=80 npm run loadtest:submit
+```
+- Drain workers:
+```bash
+LOADTEST_BASE_URL="https://YOUR_URL" WORKER_API_KEY="$WORKER_API_KEY" LOADTEST_DRAIN_CYCLES=30 npm run loadtest:drain
+```
+
+## Dispatch Tuning
+- `SUBMIT_DISPATCH_NUDGE_MODULO`
+  - `8` means roughly 1 out of 8 submissions nudges dispatch.
+  - Lower value => faster near-real-time drain, higher infra load.
+  - Higher value => lower overhead, relies more on cron.
+- `/api/cron/dispatch` query params:
+  - `submissionBatch` (default `200`)
+  - `jobBatch` (default `200`)
+  - `maxCycles` (default `20`)
+  - `budgetMs` (default `9000`)
+  - `leaseTtlSeconds` (default `20`)

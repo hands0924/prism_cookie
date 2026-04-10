@@ -1,0 +1,35 @@
+{
+  "status": 200,
+  "success": true,
+  "snapshot": {
+    "generatedAt": "2026-04-09T15:56:27.451Z",
+    "submissions": {
+      "total": 1676,
+      "last5m": 0,
+      "sent": 0,
+      "failed": 4,
+      "pending": 1672
+    },
+    "submissionEvents": {
+      "pending": 0,
+      "processing": 331,
+      "doneOrSent": 1345,
+      "failed": 0,
+      "oldestPendingSeconds": null
+    },
+    "messageJobs": {
+      "pending": 593,
+      "processing": 755,
+      "doneOrSent": 0,
+      "failed": 0,
+      "oldestPendingSeconds": 1515
+    },
+    "shareImageJobs": {
+      "pending": 0,
+      "processing": 544,
+      "doneOrSent": 803,
+      "failed": 0,
+      "oldestPendingSeconds": null
+    }
+  }
+}

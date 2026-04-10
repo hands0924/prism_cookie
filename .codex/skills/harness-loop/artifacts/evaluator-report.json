@@ -1,0 +1,21 @@
+{
+  "rubric": {
+    "product_fidelity": 0,
+    "reliability": 0,
+    "ux_share_quality": 0,
+    "operational_readiness": 0
+  },
+  "open_issues": {
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 0
+  },
+  "required_checks": {
+    "typecheck": "not_run",
+    "lint": "not_run",
+    "tests": "not_run",
+    "smoke": "not_run"
+  },
+  "summary": ""
+}

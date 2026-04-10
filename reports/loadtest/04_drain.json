@@ -1,0 +1,7 @@
+
+> prism-cookie-vercel-supabase@0.1.0 loadtest:drain
+> node scripts/loadtest-drain.mjs
+
+[cycle 1/6] events=0 messages=100 images=100 statuses=200/200/200
+[cycle 2/6] events=0 messages=100 images=0 statuses=200/200/200
+[cycle 3/6] events=0 messages=0 images=0 statuses=200/500/200
