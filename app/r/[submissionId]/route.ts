@@ -1,5 +1,5 @@
 import { getBreadName, getResultType } from "@/lib/bread";
-import { getPublicStorageUrl, getServiceSupabaseClient } from "@/lib/supabase";
+import { getServiceSupabaseClient } from "@/lib/supabase";
 
 export const runtime = "nodejs";
 
@@ -40,7 +40,8 @@ export async function GET(_: Request, context: { params: Promise<{ submissionId:
   const resultType = getResultType(data.needed_thing);
   const pageUrl = `${origin}/r/${encodeURIComponent(submissionId)}`;
   const dynamicImageUrl = `${origin}/api/og/${encodeURIComponent(submissionId)}`;
-  const imageUrl = data.share_image_key ? getPublicStorageUrl(data.share_image_key) : dynamicImageUrl;
+  // Always prefer the dynamic PNG endpoint for OG — social platforms need raster images
+  const imageUrl = dynamicImageUrl;
   const xShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
     `${data.name}님의 프리즘 포춘 결과를 확인해보세요.`
   )}&url=${encodeURIComponent(pageUrl)}`;

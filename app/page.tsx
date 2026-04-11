@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import { DEFAULT_TYPE_DESC, DEFAULT_TYPE_EMOJI, DEFAULT_TYPE_NAME, getTypeProfile } from "@/lib/bread";
-import { buildShareSvg } from "@/lib/image";
+import { generateShareCardPng, type ShareCardInput } from "@/lib/share-canvas";
 
 type Option = {
   label: string;
@@ -108,46 +108,40 @@ export default function HomePage() {
         }
       : getTypeProfile(form.neededThing);
 
-  const shareCardInput = useMemo(() => {
-    if (!submitResult) {
-      return null;
+  const [shareAsset, setShareAsset] = useState<{
+    file: File | null;
+    previewUrl: string | null;
+    loading: boolean;
+    error: string | null;
+  }>({ file: null, previewUrl: null, loading: false, error: null });
+
+  const buildShareAsset = useCallback(async (input: ShareCardInput) => {
+    setShareAsset((prev) => ({ ...prev, loading: true, error: null }));
+    try {
+      const result = await generateShareCardPng(input);
+      setShareAsset({ file: result.file, previewUrl: result.previewUrl, loading: false, error: null });
+    } catch (err) {
+      setShareAsset({
+        file: null,
+        previewUrl: null,
+        loading: false,
+        error: err instanceof Error ? err.message : "share_card_generation_failed"
+      });
     }
-    return {
+  }, []);
+
+  useEffect(() => {
+    if (!submitResult) return;
+    const input: ShareCardInput = {
       name: submitResult.name,
       breadName: submitResult.breadName ?? "포춘쿠키",
       typeName: typeProfile.typeName,
+      typeEmoji: typeProfile.typeEmoji,
       typeDesc: typeProfile.typeDesc,
       message: submitResult.message ?? []
     };
-  }, [submitResult, typeProfile.typeDesc, typeProfile.typeName]);
-
-  const shareAsset = useMemo(() => {
-    if (!shareCardInput || !submitResult) {
-      return null;
-    }
-
-    try {
-      const svg = buildShareSvg({
-        title: `${shareCardInput.name}님의 미래 레시피`,
-        breadName: shareCardInput.breadName,
-        resultType: submitResult.resultType ?? "프리즘 포춘형",
-        typeName: shareCardInput.typeName,
-        typeEmoji: typeProfile.typeEmoji,
-        lines: shareCardInput.message
-      });
-      return {
-        file: new File([svg], "prism-fortune-card.svg", { type: "image/svg+xml;charset=utf-8" }),
-        previewUrl: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
-        error: null as string | null
-      };
-    } catch (error) {
-      return {
-        file: null,
-        previewUrl: null,
-        error: error instanceof Error ? error.message : "share_asset_build_failed"
-      };
-    }
-  }, [shareCardInput, submitResult, typeProfile.typeEmoji]);
+    void buildShareAsset(input);
+  }, [submitResult, typeProfile.typeName, typeProfile.typeEmoji, typeProfile.typeDesc, buildShareAsset]);
 
   function showToast(message: string) {
     setToast(message);
@@ -335,13 +329,18 @@ export default function HomePage() {
     if (!submitResult) {
       throw new Error("missing_submit_result");
     }
-    if (shareAsset?.file) {
+    if (shareAsset.file) {
       return shareAsset.file;
     }
+    // Try generating on-the-fly if the initial build hasn't finished
+    if (shareAsset.loading) {
+      await new Promise((r) => setTimeout(r, 1500));
+      if (shareAsset.file) return shareAsset.file;
+    }
     await logClientIssue("share_asset_prepare_failed", {
-      reason: shareAsset?.error ?? "missing_share_asset"
+      reason: shareAsset.error ?? "missing_share_asset"
     });
-    throw new Error(shareAsset?.error ?? "missing_share_asset");
+    throw new Error(shareAsset.error ?? "missing_share_asset");
   }
 
   async function saveShareImage(file?: File) {
@@ -356,7 +355,7 @@ export default function HomePage() {
       if (isIOS || !supportsDownload) {
         window.open(url, "_blank", "noopener,noreferrer");
         showToast("새 탭에서 이미지를 길게 눌러 저장해 주세요.");
-        window.setTimeout(() => URL.revokeObjectURL(url), 3000);
+        window.setTimeout(() => URL.revokeObjectURL(url), 5000);
         return;
       }
       const anchor = document.createElement("a");
@@ -370,10 +369,10 @@ export default function HomePage() {
     } catch (error) {
       await logClientIssue("image_save_failed", {
         error: error instanceof Error ? error.message : "unknown_save_failure",
-        hasShareAsset: Boolean(shareAsset?.file),
-        shareAssetError: shareAsset?.error ?? null
+        hasShareAsset: Boolean(shareAsset.file),
+        shareAssetError: shareAsset.error ?? null
       });
-      if (shareAsset?.previewUrl) {
+      if (shareAsset.previewUrl) {
         openExternalUrl(shareAsset.previewUrl);
         showToast("저장이 어려워 새 탭에서 이미지를 열었어요. 길게 눌러 저장해 주세요.");
         return;
@@ -388,7 +387,7 @@ export default function HomePage() {
       return;
     }
     const { title, shareUrl, shareText } = getSharePayload();
-    const imageFile = shareAsset?.file ?? null;
+    const imageFile = shareAsset.file;
 
     if (navigator.share) {
       try {
@@ -420,10 +419,14 @@ export default function HomePage() {
   }
 
   async function shareViaTwitter() {
-    const { shareUrl, shareText } = getSharePayload();
-    const twitterIntent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+    const { shareUrl } = getSharePayload();
+    // Compose tweet text — keep short so Twitter card (OG image) shows prominently
+    const tweetText = submitResult
+      ? `${submitResult.name}님의 프리즘 포춘 결과를 확인해보세요 🌈\n\n포용적 금융서비스 프리즘지점`
+      : "나의 미래 레시피를 만들어보세요 🌈";
+    const twitterIntent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(shareUrl)}`;
     openExternalUrl(twitterIntent);
-    showToast("X 공유 창을 열었어요.");
+    showToast("X 공유 창을 열었어요. 트윗에 이미지 카드가 표시돼요.");
   }
 
   async function shareViaMessage() {
@@ -436,13 +439,32 @@ export default function HomePage() {
 
   async function shareViaKakao() {
     const { shareUrl, shareText } = getSharePayload();
+    const imageFile = shareAsset.file;
+
+    // Try Web Share API with image (works on mobile Kakao/other apps)
+    if (navigator.share && imageFile && navigator.canShare?.({ files: [imageFile] })) {
+      try {
+        await navigator.share({
+          title: "Prism Future Recipe",
+          text: shareText,
+          url: shareUrl,
+          files: [imageFile]
+        });
+        return;
+      } catch {
+        // User cancelled or share failed — fall through to URL share
+      }
+    }
+
+    // Fallback: open Kakao sharer (uses OG image from the share URL)
     const kakaoUrl = `https://sharer.kakao.com/talk/friends/picker/link?url=${encodeURIComponent(shareUrl)}`;
     openExternalUrl(kakaoUrl);
     void copyText(shareText, "카카오톡에 붙여넣을 문구를 복사했어요.");
   }
 
   async function shareViaInstagram() {
-    const { shareText } = getSharePayload();
+    const { shareUrl, shareText } = getSharePayload();
+    const captionText = `${shareText}\n\n#프리즘지점 #서울퀴어문화축제 #BakeYourFuture #미래레시피`;
     let imageFile: File | null = null;
     try {
       imageFile = await getOrCreateShareImageFile();
@@ -453,25 +475,27 @@ export default function HomePage() {
       imageFile = null;
     }
 
+    // On mobile: try native share with image file (user picks Instagram)
     if (navigator.share && imageFile && navigator.canShare?.({ files: [imageFile] })) {
       try {
         await navigator.share({
           title: "Prism Future Recipe",
-          text: shareText,
+          text: captionText,
           files: [imageFile]
         });
         return;
       } catch {
-        // Fall through to save + copy + open Instagram.
+        // User cancelled — fall through to save + copy flow
       }
     }
 
+    // Desktop / fallback: save image → copy caption → open Instagram
     if (imageFile) {
       await saveShareImage(imageFile);
     } else {
       showToast("이미지 준비가 덜 되어 링크와 문구를 먼저 복사할게요.");
     }
-    await copyText(shareText, "인스타 업로드용 문구를 복사했어요.");
+    await copyText(captionText, "인스타 업로드용 문구를 복사했어요. 이미지와 함께 붙여넣기 해주세요!");
     openExternalUrl("https://www.instagram.com/");
   }
 
@@ -716,7 +740,7 @@ export default function HomePage() {
           <div className="fortune-result-label">Prism Future Recipe</div>
           <div className="fortune-result-title">{submitResult ? `${submitResult.name}님의 미래 레시피` : "당신의 미래 레시피"}</div>
           <div className="fortune-share-preview-shell">
-            {shareAsset?.previewUrl ? (
+            {shareAsset.previewUrl ? (
               <Image
                 className="fortune-share-preview"
                 src={shareAsset.previewUrl}
@@ -725,13 +749,17 @@ export default function HomePage() {
                 height={1440}
                 unoptimized
               />
+            ) : shareAsset.loading ? (
+              <div className="fortune-share-preview-placeholder">
+                <div className="fortune-share-preview-copy">카드를 만들고 있어요...</div>
+              </div>
             ) : (
               <div className="fortune-share-preview-placeholder">
                 <div className="fortune-share-preview-copy">카드를 준비하지 못했어요</div>
               </div>
             )}
           </div>
-          <div className="fortune-result-capture-hint">보이는 카드 그대로 저장되고 공유돼요</div>
+          <div className="fortune-result-capture-hint">보이는 카드 그대로 PNG 이미지로 저장·공유돼요</div>
         </div>
 
         <section className="fortune-share-panel" aria-label="공유 옵션">
