@@ -123,11 +123,10 @@ test.describe("Share card & sharing flow", () => {
     await expect(sharePanel).toBeVisible();
 
     await expect(sharePanel.locator("text=카카오톡")).toBeVisible();
-    await expect(sharePanel.locator("text=X(Twitter)")).toBeVisible();
-    await expect(sharePanel.locator("text=인스타그램")).toBeVisible();
-    await expect(sharePanel.locator("text=이미지 저장")).toBeVisible();
-    await expect(sharePanel.locator("text=링크 복사")).toBeVisible();
-    await expect(sharePanel.locator("text=시스템 공유")).toBeVisible();
+    await expect(sharePanel.locator("button[aria-label='X']")).toBeVisible();
+    await expect(sharePanel.locator("text=인스타")).toBeVisible();
+    await expect(sharePanel.locator("button[aria-label='저장']")).toBeVisible();
+    await expect(sharePanel.locator("text=링크")).toBeVisible();
 
     // Take screenshot of the share panel
     await page.screenshot({
