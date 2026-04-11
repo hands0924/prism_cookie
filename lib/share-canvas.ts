@@ -101,7 +101,7 @@ function getTheme(breadName: string): Theme {
 
 const W = 1080;
 const H = 1440;
-const PAD = 80;
+const PAD = 64;
 const INNER = W - PAD * 2;
 const FONT = '"Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif';
 const EMOJI_FONT =
@@ -234,11 +234,10 @@ export async function generateShareCardPng(input: ShareCardInput): Promise<{
   previewUrl: string;
 }> {
   await Promise.all([
-    document.fonts.load(`800 48px ${FONT}`),
-    document.fonts.load(`700 36px ${FONT}`),
-    document.fonts.load(`500 30px ${FONT}`),
-    document.fonts.load(`400 24px ${FONT}`),
-    document.fonts.load(`300 20px ${FONT}`),
+    document.fonts.load(`800 60px ${FONT}`),
+    document.fonts.load(`700 42px ${FONT}`),
+    document.fonts.load(`500 34px ${FONT}`),
+    document.fonts.load(`400 30px ${FONT}`),
   ]);
 
   const theme = getTheme(input.breadName);
@@ -251,109 +250,104 @@ export async function generateShareCardPng(input: ShareCardInput): Promise<{
   ctx.fillStyle = "#FFF9F2";
   ctx.fillRect(0, 0, W, H);
 
-  // Soft decorative glows
-  fillGlow(ctx, 900, 100, 260, "#FFD166", 0.1);
-  fillGlow(ctx, 180, 1340, 260, "#7BDFF2", 0.08);
-  fillGlow(ctx, W / 2, 700, 400, theme.glowColor, 0.06);
+  fillGlow(ctx, 900, 80, 300, "#FFD166", 0.1);
+  fillGlow(ctx, 160, 1360, 300, "#7BDFF2", 0.08);
+  fillGlow(ctx, W / 2, 700, 440, theme.glowColor, 0.06);
 
   /* ── Outer card ── */
-  const cX = 40,
-    cY = 40,
-    cW = W - 80,
-    cH = H - 80;
-  // Card shadow
+  const cX = 36,
+    cY = 36,
+    cW = W - 72,
+    cH = H - 72;
   ctx.save();
   ctx.shadowColor = "rgba(62,45,37,0.08)";
   ctx.shadowBlur = 40;
   ctx.shadowOffsetY = 12;
-  roundRect(ctx, cX, cY, cW, cH, 48);
+  roundRect(ctx, cX, cY, cW, cH, 44);
   ctx.fillStyle = "#FFFDF9";
   ctx.fill();
   ctx.restore();
-  // Card border
-  roundRect(ctx, cX, cY, cW, cH, 48);
+  roundRect(ctx, cX, cY, cW, cH, 44);
   ctx.strokeStyle = "rgba(62,45,37,0.05)";
   ctx.lineWidth = 1;
   ctx.stroke();
 
-  // Prism gradient bar at top of card
+  // Prism bar
   ctx.save();
   ctx.beginPath();
-  ctx.rect(cX, cY, cW, 10);
+  ctx.rect(cX, cY, cW, 12);
   ctx.clip();
-  drawPrismBar(ctx, cX, cY, cW, 10);
+  drawPrismBar(ctx, cX, cY, cW, 12);
   ctx.restore();
 
   /* ── Header ── */
-  let y = 100;
+  let y = 98;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `500 17px ${FONT}`;
+  ctx.font = `600 22px ${FONT}`;
   ctx.fillStyle = "#A89888";
   ctx.fillText("P R I S M   F U T U R E   R E C I P E", W / 2, y);
 
   /* ── Title ── */
-  y = 162;
+  y = 176;
   ctx.textBaseline = "alphabetic";
-  ctx.font = `800 44px ${FONT}`;
+  ctx.font = `800 56px ${FONT}`;
   ctx.fillStyle = "#2E1F15";
   const titleLines = wrapText(
     ctx,
     `${input.name}님의 미래 레시피`,
-    cW - 140,
+    cW - 100,
   );
   for (const line of titleLines) {
     ctx.fillText(line, W / 2, y);
-    y += 58;
+    y += 72;
   }
 
-  // Thin decorative line under title
-  y += 8;
+  // Decorative line under title
+  y += 4;
   ctx.strokeStyle = "rgba(62,45,37,0.06)";
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(PAD + 60, y);
-  ctx.lineTo(W - PAD - 60, y);
+  ctx.moveTo(PAD + 40, y);
+  ctx.lineTo(W - PAD - 40, y);
   ctx.stroke();
 
   /* ── Type area ── */
-  y += 28;
+  y += 24;
   const typeX = PAD;
 
-  // Pre-compute description lines
-  ctx.font = `400 23px ${FONT}`;
+  ctx.font = `400 28px ${FONT}`;
   const descLines = wrapText(ctx, input.typeDesc, INNER - 80);
-  const typeH = 108 + 54 + 52 + 16 + descLines.length * 36 + 36;
+  const typeH = 120 + 64 + 60 + 18 + descLines.length * 42 + 40;
 
-  roundRect(ctx, typeX, y, INNER, typeH, 28);
+  roundRect(ctx, typeX, y, INNER, typeH, 32);
   ctx.fillStyle = theme.typeAreaBg;
   ctx.fill();
   ctx.strokeStyle = theme.typeAreaStroke;
   ctx.lineWidth = 1;
   ctx.stroke();
 
-  // Decorative accent glow
   ctx.save();
-  roundRect(ctx, typeX, y, INNER, typeH, 28);
+  roundRect(ctx, typeX, y, INNER, typeH, 32);
   ctx.clip();
-  fillGlow(ctx, typeX + INNER - 40, y + 30, 200, theme.glowColor, 0.16);
+  fillGlow(ctx, typeX + INNER - 40, y + 30, 240, theme.glowColor, 0.16);
   ctx.restore();
 
-  // Emoji
-  let ty = y + 88;
+  // Emoji — big and bold
+  let ty = y + 100;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `400 72px ${EMOJI_FONT}`;
+  ctx.font = `400 96px ${EMOJI_FONT}`;
   ctx.fillText(input.typeEmoji, W / 2, ty);
 
   // Type name
-  ty += 54;
-  ctx.font = `700 32px ${FONT}`;
+  ty += 64;
+  ctx.font = `700 40px ${FONT}`;
   ctx.fillStyle = "#2E1F15";
   ctx.fillText(`${input.typeName} 타입`, W / 2, ty);
 
-  // Bread name pill
-  ty += 52;
+  // Bread name pill — larger
+  ty += 60;
   drawPill(
     ctx,
     `오늘의 빵: ${input.breadName}`,
@@ -361,40 +355,39 @@ export async function generateShareCardPng(input: ShareCardInput): Promise<{
     ty,
     theme.tagBg,
     theme.tagText,
-    20,
+    24,
   );
 
   // Description
-  ty += 42;
+  ty += 50;
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
-  ctx.font = `400 23px ${FONT}`;
+  ctx.font = `400 28px ${FONT}`;
   ctx.fillStyle = "#7A685E";
   for (const line of descLines) {
     ctx.fillText(line, W / 2, ty);
-    ty += 36;
+    ty += 42;
   }
 
   const typeEndY = y + typeH;
 
   /* ── Divider ── */
   let dy = typeEndY + 28;
-  const divW = 200;
-  drawPrismBar(ctx, W / 2 - divW / 2, dy, divW, 3);
+  const divW = 240;
+  drawPrismBar(ctx, W / 2 - divW / 2, dy, divW, 4);
 
   /* ── Message area ── */
-  dy += 32;
+  dy += 36;
   const msgX = PAD;
 
-  // "Fortune Message" label
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `500 16px ${FONT}`;
+  ctx.font = `500 19px ${FONT}`;
   ctx.fillStyle = "#A89888";
   ctx.fillText("F O R T U N E   M E S S A G E", W / 2, dy);
-  dy += 28;
+  dy += 32;
 
-  ctx.font = `500 27px ${FONT}`;
+  ctx.font = `500 34px ${FONT}`;
   ctx.textBaseline = "alphabetic";
   const allMsgLines: string[] = [];
   for (const line of input.message) {
@@ -402,60 +395,57 @@ export async function generateShareCardPng(input: ShareCardInput): Promise<{
     if (!t) continue;
     allMsgLines.push(...wrapText(ctx, t, INNER - 72));
   }
-  const msgLines = allMsgLines.slice(0, 9);
-  const msgLineH = 46;
-  const msgPadV = 32;
+  const msgLines = allMsgLines.slice(0, 8);
+  const msgLineH = 56;
+  const msgPadV = 36;
   const msgH = msgPadV + msgLines.length * msgLineH + msgPadV;
 
-  // Message card
   ctx.save();
   ctx.shadowColor = "rgba(62,45,37,0.04)";
   ctx.shadowBlur = 20;
   ctx.shadowOffsetY = 4;
-  roundRect(ctx, msgX, dy, INNER, msgH, 24);
+  roundRect(ctx, msgX, dy, INNER, msgH, 28);
   ctx.fillStyle = "#FFFEFB";
   ctx.fill();
   ctx.restore();
-  roundRect(ctx, msgX, dy, INNER, msgH, 24);
+  roundRect(ctx, msgX, dy, INNER, msgH, 28);
   ctx.strokeStyle = "rgba(62,45,37,0.04)";
   ctx.lineWidth = 1;
   ctx.stroke();
 
-  // Subtle accent glow
   ctx.save();
-  roundRect(ctx, msgX, dy, INNER, msgH, 24);
+  roundRect(ctx, msgX, dy, INNER, msgH, 28);
   ctx.clip();
-  fillGlow(ctx, msgX + INNER - 50, dy + msgH - 30, 140, theme.glowColor, 0.1);
+  fillGlow(ctx, msgX + INNER - 50, dy + msgH - 30, 160, theme.glowColor, 0.1);
   ctx.restore();
 
-  // Message text
+  // Message text — nice and readable
   ctx.textAlign = "left";
-  let my = dy + msgPadV + 26;
+  let my = dy + msgPadV + 32;
   for (let i = 0; i < msgLines.length; i++) {
     const isLast = i === msgLines.length - 1;
-    ctx.font = isLast ? `700 27px ${FONT}` : `400 27px ${FONT}`;
+    ctx.font = isLast ? `700 34px ${FONT}` : `400 34px ${FONT}`;
     ctx.fillStyle = isLast ? theme.highlight : "#3E2D25";
     ctx.fillText(msgLines[i], msgX + 36, my);
     my += msgLineH;
   }
 
   /* ── Footer ── */
-  const footerY = Math.max(dy + msgH + 44, H - 128);
+  const footerY = Math.max(dy + msgH + 40, H - 120);
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
-  // Prism dots
-  dot(ctx, W / 2 - 20, footerY, 5, "#FF8A5B");
-  dot(ctx, W / 2, footerY, 5, "#FFD166");
-  dot(ctx, W / 2 + 20, footerY, 5, "#7BDFF2");
+  dot(ctx, W / 2 - 22, footerY, 6, "#FF8A5B");
+  dot(ctx, W / 2, footerY, 6, "#FFD166");
+  dot(ctx, W / 2 + 22, footerY, 6, "#7BDFF2");
 
-  ctx.font = `600 19px ${FONT}`;
+  ctx.font = `600 22px ${FONT}`;
   ctx.fillStyle = "#8B776D";
-  ctx.fillText("서울퀴어문화축제에서 만나는 프리즘지점", W / 2, footerY + 32);
+  ctx.fillText("서울퀴어문화축제에서 만나는 프리즘지점", W / 2, footerY + 34);
 
-  ctx.font = `400 16px ${FONT}`;
+  ctx.font = `400 19px ${FONT}`;
   ctx.fillStyle = "#A89888";
-  ctx.fillText("@prism.fin", W / 2, footerY + 58);
+  ctx.fillText("@prism.fin", W / 2, footerY + 62);
 
   /* ── Export PNG ── */
   const blob = await new Promise<Blob>((resolve, reject) => {
