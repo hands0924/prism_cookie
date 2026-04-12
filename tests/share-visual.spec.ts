@@ -7,9 +7,12 @@ import { test, expect } from "playwright/test";
  *  3. OG image endpoint returns PNG
  */
 
-// Helper: fill the survey and submit to reach the result screen
-async function completeFlowToResult(page: ReturnType<typeof test["info"]> extends never ? never : Awaited<ReturnType<typeof import("playwright/test")["chromium"]["launch"]>>["newPage"] extends (...a: infer _A) => infer R ? Awaited<R> : never) {
-  // This is typed loosely; the actual type from test fixtures is Page
+async function pickOption(page: Parameters<Parameters<typeof test>[1]>[0]["page"], text: string) {
+  const btn = page.locator(`text=${text}`).first();
+  await btn.waitFor({ state: "visible", timeout: 10000 });
+  await btn.click();
+  // Wait for the CSS section transition (320ms animation + buffer)
+  await page.waitForTimeout(500);
 }
 
 test.describe("Share card & sharing flow", () => {
@@ -18,35 +21,37 @@ test.describe("Share card & sharing flow", () => {
   }) => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
+    // Ensure React hydration completes before interacting
+    await page.waitForFunction(() => {
+      const btn = document.querySelector('.fortune-btn-cta');
+      return btn && btn instanceof HTMLButtonElement;
+    }, { timeout: 10000 });
 
     // Step 0 → 1: Click CTA
-    await page.click("text=나만의 미래 레시피 만들기");
-    await page.waitForTimeout(400);
+    await pickOption(page, "나만의 미래 레시피 만들기");
 
     // Step 1: Pick concern
-    await page.click("text=수입이 불안정할 때");
-    await page.waitForTimeout(400);
+    await pickOption(page, "수입이 불안정할 때");
 
     // Step 2: Pick protect target
-    await page.click("text=나 자신");
-    await page.waitForTimeout(400);
+    await pickOption(page, "나 자신");
 
     // Step 3: Pick needed thing → determines bread type
-    await page.click("text=정보");
-    await page.waitForTimeout(400);
+    await pickOption(page, "정보");
 
     // Step 4: Fill form
+    await page.waitForSelector("#inputName", { state: "visible", timeout: 5000 });
     await page.fill("#inputName", "테스트유저");
     await page.fill("#inputPhone", "01012345678");
 
     // Select interest
-    await page.click("text=앞으로 활동소식을 받고 싶어요");
+    await pickOption(page, "앞으로 활동소식을 받고 싶어요");
 
     // Consent
-    await page.click("text=개인정보 수집 및 이용에 동의합니다");
+    await pickOption(page, "개인정보 수집 및 이용에 동의합니다");
 
     // Submit
-    await page.click("text=내 미래 레시피 확인하기");
+    await pickOption(page, "내 미래 레시피 확인하기");
 
     // Wait for result screen (step 6)
     await page.waitForSelector(".fortune-share-preview-shell", {
@@ -101,20 +106,17 @@ test.describe("Share card & sharing flow", () => {
     await page.goto("/");
 
     // Quick flow to result
-    await page.click("text=나만의 미래 레시피 만들기");
-    await page.waitForTimeout(300);
-    await page.click("text=건강이 무너질 때");
-    await page.waitForTimeout(300);
-    await page.click("text=파트너");
-    await page.waitForTimeout(300);
-    await page.click("text=응원");
-    await page.waitForTimeout(300);
+    await pickOption(page, "나만의 미래 레시피 만들기");
+    await pickOption(page, "건강이 무너질 때");
+    await pickOption(page, "파트너");
+    await pickOption(page, "응원");
 
+    await page.waitForSelector("#inputName", { state: "visible", timeout: 5000 });
     await page.fill("#inputName", "공유테스트");
     await page.fill("#inputPhone", "01098765432");
-    await page.click("text=보험상담을 의뢰하고 싶어요");
-    await page.click("text=개인정보 수집 및 이용에 동의합니다");
-    await page.click("text=내 미래 레시피 확인하기");
+    await pickOption(page, "보험상담을 의뢰하고 싶어요");
+    await pickOption(page, "개인정보 수집 및 이용에 동의합니다");
+    await pickOption(page, "내 미래 레시피 확인하기");
 
     await page.waitForSelector(".fortune-share-panel", { timeout: 15000 });
 
@@ -138,21 +140,18 @@ test.describe("Share card & sharing flow", () => {
   test("each bread type produces a distinct card", async ({ page }) => {
     // Test with a different needed_thing to get a different bread type
     await page.goto("/");
-    await page.click("text=나만의 미래 레시피 만들기");
-    await page.waitForTimeout(300);
-    await page.click("text=노후 준비");
-    await page.waitForTimeout(300);
-    await page.click("text=가족");
-    await page.waitForTimeout(300);
+    await pickOption(page, "나만의 미래 레시피 만들기");
+    await pickOption(page, "노후 준비");
+    await pickOption(page, "가족");
     // Pick "계획" → 프레첼 bread type
-    await page.click("text=계획");
-    await page.waitForTimeout(300);
+    await pickOption(page, "계획");
 
+    await page.waitForSelector("#inputName", { state: "visible", timeout: 5000 });
     await page.fill("#inputName", "프레첼테스터");
     await page.fill("#inputPhone", "01011112222");
-    await page.click("text=재무상담을 의뢰하고 싶어요");
-    await page.click("text=개인정보 수집 및 이용에 동의합니다");
-    await page.click("text=내 미래 레시피 확인하기");
+    await pickOption(page, "재무상담을 의뢰하고 싶어요");
+    await pickOption(page, "개인정보 수집 및 이용에 동의합니다");
+    await pickOption(page, "내 미래 레시피 확인하기");
 
     await page.waitForSelector(".fortune-share-preview-shell", {
       timeout: 15000,

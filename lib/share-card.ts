@@ -209,7 +209,7 @@ export function buildShareCardSvg(input: ShareCardInput): string {
       ${messageBlock}
 
       <circle cx="908" cy="1144" r="92" fill="#FFC857" opacity="0.08"/>
-      <text x="540" y="1288" text-anchor="middle" font-family="'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" font-size="22" font-weight="600" fill="#7A685E">서울퀴어문화축제에서 만나는 프리즘지점</text>
+      <text x="540" y="1288" text-anchor="middle" font-family="'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" font-size="22" font-weight="600" fill="#7A685E">퀴어문화축제에서 만나는 프리즘지점</text>
       <text x="540" y="1330" text-anchor="middle" font-family="'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" font-size="20" font-weight="500" fill="#8B776D">instagram.com/prism.fin</text>
 
       <defs>
