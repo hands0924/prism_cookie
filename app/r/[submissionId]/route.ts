@@ -39,13 +39,7 @@ export async function GET(_: Request, context: { params: Promise<{ submissionId:
   const breadName = getBreadName(data.needed_thing);
   const resultType = getResultType(data.needed_thing);
   const pageUrl = `${origin}/r/${encodeURIComponent(submissionId)}`;
-  const dynamicImageUrl = `${origin}/api/og/${encodeURIComponent(submissionId)}`;
-  // Always prefer the dynamic PNG endpoint for OG — social platforms need raster images
-  const imageUrl = dynamicImageUrl;
-  const xShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-    `${data.name}님의 프리즘 포춘 결과를 확인해보세요.`
-  )}&url=${encodeURIComponent(pageUrl)}`;
-  const kakaoShareUrl = `https://sharer.kakao.com/talk/friends/picker/link?url=${encodeURIComponent(pageUrl)}`;
+  const imageUrl = `${origin}/api/og/${encodeURIComponent(submissionId)}`;
   const renderedMessage = lines.map((line: string) => `<p>${escapeHtml(line)}</p>`).join("\n");
 
   const html = `<!doctype html>
@@ -78,12 +72,13 @@ export async function GET(_: Request, context: { params: Promise<{ submissionId:
     .desc { margin:0 0 18px; color:var(--sub); line-height:1.6; }
     .preview { width:100%; border-radius:14px; border:1px solid var(--border); margin:0 0 18px; }
     .message p { margin:0 0 12px; line-height:1.75; }
-    .message p:last-child { margin-bottom:0; color:var(--cta); font-weight:600; }
-    .actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
-    .btn { display:inline-flex; align-items:center; justify-content:center; border-radius:10px; border:1px solid var(--border);
-      padding:10px 14px; text-decoration:none; color:var(--text); font-weight:600; background:#fff; cursor:pointer; }
-    .btn-primary { border-color:transparent; color:#fff; background:var(--cta); }
-    .guide { margin-top:12px; color:var(--sub); line-height:1.55; }
+    .message p:last-child { margin-bottom:0; }
+    .actions { margin-top:24px; text-align:center; }
+    .btn-cta { display:inline-block; border-radius:14px; border:none;
+      padding:14px 32px; text-decoration:none; color:#fff; font-weight:700; font-size:17px;
+      background:linear-gradient(135deg, #FF8A5B 0%, #FFD166 100%); cursor:pointer;
+      box-shadow:0 4px 14px rgba(255,138,91,.25); transition:transform .15s; }
+    .btn-cta:active { transform:scale(.97); }
   </style>
 </head>
 <body>
@@ -98,106 +93,12 @@ export async function GET(_: Request, context: { params: Promise<{ submissionId:
         <img class="preview" src="${escapeHtml(imageUrl)}" alt="공유 이미지" />
         <div class="message">${renderedMessage}</div>
         <div class="actions">
-          <a class="btn" href="${escapeHtml(kakaoShareUrl)}" target="_blank" rel="noreferrer">카카오톡 공유</a>
-          <a class="btn" href="${escapeHtml(xShareUrl)}" target="_blank" rel="noreferrer">X 공유</a>
-          <button class="btn" type="button" id="instagram-btn">인스타그램</button>
-          <button class="btn btn-primary" type="button" id="save-btn">이미지 저장</button>
-          <button class="btn" type="button" id="copy-btn">링크 복사</button>
-          <button class="btn" type="button" id="share-btn">시스템 공유</button>
+          <a class="btn-cta" href="${escapeHtml(origin)}">🍞 나도 해보기</a>
         </div>
-        <p class="guide">인스타그램은 이미지 저장 후 문구를 붙여넣는 방식으로 가장 안정적으로 공유돼요.</p>
       </div>
     </article>
   </main>
-  <script>
-    const pageUrl = ${JSON.stringify(pageUrl)};
-    const imageUrl = ${JSON.stringify(imageUrl)};
-    const title = ${JSON.stringify(title)};
-    const text = ${JSON.stringify(`${data.name}님의 프리즘 포춘 결과를 확인해보세요.`)};
-    const copyBtn = document.getElementById("copy-btn");
-    const saveBtn = document.getElementById("save-btn");
-    const shareBtn = document.getElementById("share-btn");
-    const instagramBtn = document.getElementById("instagram-btn");
-
-    saveBtn?.addEventListener("click", async () => {
-      try {
-        const response = await fetch(imageUrl, { cache: "no-store" });
-        if (!response.ok) {
-          throw new Error("image_fetch_failed");
-        }
-        const blob = await response.blob();
-        const objectUrl = URL.createObjectURL(blob);
-        const anchor = document.createElement("a");
-        anchor.href = objectUrl;
-        anchor.download = "prism-fortune-share.png";
-        document.body.appendChild(anchor);
-        anchor.click();
-        document.body.removeChild(anchor);
-        URL.revokeObjectURL(objectUrl);
-      } catch {
-        window.open(imageUrl, "_blank", "noopener,noreferrer");
-      }
-    });
-
-    copyBtn?.addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(pageUrl);
-        copyBtn.textContent = "링크 복사됨";
-        setTimeout(() => {
-          copyBtn.textContent = "링크 복사";
-        }, 1300);
-      } catch {
-        alert("링크 복사에 실패했어요.");
-      }
-    });
-
-    instagramBtn?.addEventListener("click", async () => {
-      try {
-        const response = await fetch(imageUrl, { cache: "no-store" });
-        if (!response.ok) {
-          throw new Error("image_fetch_failed");
-        }
-        const blob = await response.blob();
-        const file = new File([blob], "prism-fortune-share.png", { type: blob.type || "image/png" });
-
-        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({ files: [file], text });
-            return;
-          } catch {}
-        }
-
-        const objectUrl = URL.createObjectURL(blob);
-        const anchor = document.createElement("a");
-        anchor.href = objectUrl;
-        anchor.download = "prism-fortune-share.png";
-        document.body.appendChild(anchor);
-        anchor.click();
-        document.body.removeChild(anchor);
-        URL.revokeObjectURL(objectUrl);
-      } catch {}
-
-      try {
-        await navigator.clipboard.writeText(text);
-      } catch {}
-      window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
-    });
-
-    shareBtn?.addEventListener("click", async () => {
-      if (navigator.share) {
-        try {
-          await navigator.share({ title, text, url: pageUrl });
-        } catch {}
-        return;
-      }
-      try {
-        await navigator.clipboard.writeText(pageUrl);
-        alert("공유 기능 미지원 기기라 링크를 복사했어요.");
-      } catch {
-        alert(pageUrl);
-      }
-    });
-  </script>
+  <script>0</script>
 </body>
 </html>`;
 
