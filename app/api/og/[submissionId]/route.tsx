@@ -4,10 +4,17 @@ import { getServiceSupabaseClient } from "@/lib/supabase";
 
 export const runtime = "nodejs";
 
-const fontPromise = fetch(
+const fontBoldPromise = fetch(
   "https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-kr@latest/korean-700-normal.ttf",
 ).then((res) => {
-  if (!res.ok) throw new Error(`font_fetch_${res.status}`);
+  if (!res.ok) throw new Error(`font_fetch_bold_${res.status}`);
+  return res.arrayBuffer();
+});
+
+const fontRegularPromise = fetch(
+  "https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-kr@latest/korean-400-normal.ttf",
+).then((res) => {
+  if (!res.ok) throw new Error(`font_fetch_regular_${res.status}`);
   return res.arrayBuffer();
 });
 
@@ -44,9 +51,10 @@ export async function GET(
   const title = `${data.name}님의 미래 레시피`;
   const pill = PILL[meta.breadName] ?? { bg: "#FFE4DA", fg: "#C44E28" };
 
-  let fontData: ArrayBuffer;
+  let fontBold: ArrayBuffer;
+  let fontRegular: ArrayBuffer;
   try {
-    fontData = await fontPromise;
+    [fontBold, fontRegular] = await Promise.all([fontBoldPromise, fontRegularPromise]);
   } catch {
     const fallback = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"><rect fill="#FAFAF7" width="1200" height="630"/><text x="600" y="315" text-anchor="middle" font-size="36" fill="#1A1410">${title}</text></svg>`;
     return new Response(fallback, {
@@ -60,7 +68,7 @@ export async function GET(
         style={{
           display: "flex",
           flexDirection: "row",
-          alignItems: "center",
+          alignItems: "stretch",
           width: "100%",
           height: "100%",
           backgroundColor: "#FAFAF7",
@@ -76,32 +84,36 @@ export async function GET(
             top: 0,
             left: 0,
             right: 0,
-            height: 6,
+            height: 5,
             background: "linear-gradient(90deg, #FF8A5B 0%, #FFD166 28%, #7BDFF2 56%, #B8F2E6 84%, #A8E6CF 100%)",
             display: "flex",
           }}
         />
 
-        {/* Left side — emoji hero */}
+        {/* Left side — emoji hero with warm glow */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            width: 400,
-            height: "100%",
-            paddingLeft: 40,
+            width: 380,
+            position: "relative",
           }}
         >
-          <div style={{ fontSize: 120, lineHeight: 1, display: "flex" }}>
+          {/* Subtle warm glow behind emoji */}
+          <div
+            style={{
+              position: "absolute",
+              width: 260,
+              height: 260,
+              borderRadius: 130,
+              background: `radial-gradient(circle, ${pill.bg}88 0%, transparent 70%)`,
+              display: "flex",
+            }}
+          />
+          <div style={{ fontSize: 140, lineHeight: 1, display: "flex", position: "relative" }}>
             {meta.typeEmoji}
-          </div>
-          {/* Diamonds under emoji */}
-          <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
-            <div style={{ width: 10, height: 10, backgroundColor: "#FF8A5B", display: "flex", transform: "rotate(45deg)" }} />
-            <div style={{ width: 10, height: 10, backgroundColor: "#FFD166", display: "flex", transform: "rotate(45deg)" }} />
-            <div style={{ width: 10, height: 10, backgroundColor: "#7BDFF2", display: "flex", transform: "rotate(45deg)" }} />
           </div>
         </div>
 
@@ -112,118 +124,124 @@ export async function GET(
             flexDirection: "column",
             justifyContent: "center",
             flex: 1,
-            height: "100%",
-            paddingRight: 60,
-            paddingLeft: 20,
+            paddingRight: 56,
+            paddingLeft: 8,
           }}
         >
           {/* PRISM label */}
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#B0A090", letterSpacing: 6, display: "flex", marginBottom: 14 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#B0A090", letterSpacing: 6, display: "flex", marginBottom: 8 }}>
             P R I S M
           </div>
 
           {/* Title */}
           <div
             style={{
-              fontSize: 48,
+              fontSize: 46,
               fontWeight: 700,
               color: "#1A1410",
               lineHeight: 1.25,
               display: "flex",
-              marginBottom: 18,
+              marginBottom: 12,
             }}
           >
             {title}
           </div>
+
+          {/* Rule */}
+          <div style={{ width: 200, height: 1, backgroundColor: "#E8E0D6", display: "flex", marginBottom: 12 }} />
 
           {/* Type + pill row */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 14,
-              marginBottom: 20,
+              gap: 12,
+              marginBottom: 8,
             }}
           >
-            <span style={{ fontSize: 22, fontWeight: 700, color: "#1A1410" }}>
+            <span style={{ fontSize: 20, fontWeight: 700, color: "#1A1410" }}>
               {meta.typeName} 타입
             </span>
             <span
               style={{
-                width: 5,
-                height: 5,
+                width: 4,
+                height: 4,
                 backgroundColor: "#D0C8BE",
-                borderRadius: 3,
+                borderRadius: 2,
                 display: "flex",
               }}
             />
             <span
               style={{
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: 700,
                 color: pill.fg,
                 backgroundColor: pill.bg,
-                padding: "6px 18px",
-                borderRadius: 20,
+                padding: "5px 16px",
+                borderRadius: 18,
               }}
             >
               오늘의 빵: {meta.breadName}
             </span>
           </div>
 
-          {/* Fortune teaser */}
+          {/* Type description */}
+          <div style={{ fontSize: 15, fontWeight: 400, color: "#8B7B6E", lineHeight: 1.6, display: "flex", maxWidth: 580, marginBottom: 16 }}>
+            {meta.typeDesc}
+          </div>
+
+          {/* Fortune card */}
           {teaser && (
             <div
               style={{
-                fontSize: 20,
-                color: "#6B5E52",
-                lineHeight: 1.6,
                 display: "flex",
-                maxWidth: 620,
-                marginBottom: 24,
+                flexDirection: "column",
+                backgroundColor: "rgba(255,255,255,0.6)",
+                border: "1px solid rgba(30,20,10,0.05)",
+                borderRadius: 14,
+                padding: "14px 20px",
+                maxWidth: 580,
+                marginBottom: 16,
+                position: "relative",
+                overflow: "hidden",
               }}
             >
-              &ldquo;{teaser.length > 55 ? teaser.slice(0, 53) + "..." : teaser}&rdquo;
+              {/* Prismatic accent on card */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 3,
+                  background: "linear-gradient(90deg, #FF8A5B, #FFD166, #7BDFF2, #B8F2E6)",
+                  display: "flex",
+                }}
+              />
+              <div style={{ fontSize: 17, fontWeight: 400, color: "#2A1E15", lineHeight: 1.6, display: "flex" }}>
+                {teaser.length > 65 ? teaser.slice(0, 63) + "..." : teaser}
+              </div>
             </div>
           )}
 
-          {/* Thin prismatic divider */}
-          <div
-            style={{
-              width: 180,
-              height: 4,
-              borderRadius: 2,
-              background: "linear-gradient(90deg, #FF8A5B, #FFD166, #7BDFF2, #B8F2E6)",
-              display: "flex",
-              marginBottom: 14,
-            }}
-          />
-
-          {/* Footer */}
-          <div style={{ fontSize: 15, color: "#A89888", fontWeight: 700, display: "flex" }}>
-            퀴어문화축제에서 만나는 프리즘지점 · @prism.fin
+          {/* Footer row: diamonds + text */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 8, height: 8, backgroundColor: "#FF8A5B", display: "flex", transform: "rotate(45deg)" }} />
+            <div style={{ width: 8, height: 8, backgroundColor: "#FFD166", display: "flex", transform: "rotate(45deg)" }} />
+            <div style={{ width: 8, height: 8, backgroundColor: "#7BDFF2", display: "flex", transform: "rotate(45deg)" }} />
+            <span style={{ fontSize: 13, color: "#A89888", fontWeight: 400, marginLeft: 6 }}>
+              퀴어문화축제에서 만나는 프리즘지점 · @prism.fin
+            </span>
           </div>
         </div>
-
-        {/* Bottom prismatic bar */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 6,
-            background: "linear-gradient(90deg, #FF8A5B 0%, #FFD166 28%, #7BDFF2 56%, #B8F2E6 84%, #A8E6CF 100%)",
-            display: "flex",
-          }}
-        />
       </div>
     ),
     {
       width: 1200,
       height: 630,
       fonts: [
-        { name: "Noto Sans KR", data: fontData, style: "normal" as const, weight: 700 },
+        { name: "Noto Sans KR", data: fontBold, style: "normal" as const, weight: 700 },
+        { name: "Noto Sans KR", data: fontRegular, style: "normal" as const, weight: 400 },
       ],
       headers: {
         "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
