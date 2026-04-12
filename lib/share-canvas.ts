@@ -423,15 +423,14 @@ export async function generateShareCardPng(input: ShareCardInput): Promise<{
   ctx.textAlign = "left";
   let my = dy + msgPadV + 32;
   for (let i = 0; i < msgLines.length; i++) {
-    const isLast = i === msgLines.length - 1;
-    ctx.font = isLast ? `700 34px ${FONT}` : `400 34px ${FONT}`;
-    ctx.fillStyle = isLast ? theme.highlight : "#3E2D25";
+    ctx.font = `400 34px ${FONT}`;
+    ctx.fillStyle = "#3E2D25";
     ctx.fillText(msgLines[i], msgX + 36, my);
     my += msgLineH;
   }
 
   /* ── Footer ── */
-  const footerY = Math.max(dy + msgH + 40, H - 120);
+  const footerY = Math.max(dy + msgH + 24, H - 120);
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 

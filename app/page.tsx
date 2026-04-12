@@ -438,28 +438,11 @@ export default function HomePage() {
   }
 
   async function shareViaKakao() {
-    const { shareUrl, shareText } = getSharePayload();
-    const imageFile = shareAsset.file;
-
-    // Try Web Share API with image (works on mobile Kakao/other apps)
-    if (navigator.share && imageFile && navigator.canShare?.({ files: [imageFile] })) {
-      try {
-        await navigator.share({
-          title: "Prism Future Recipe",
-          text: shareText,
-          url: shareUrl,
-          files: [imageFile]
-        });
-        return;
-      } catch {
-        // User cancelled or share failed — fall through to URL share
-      }
-    }
-
-    // Fallback: open Kakao sharer (uses OG image from the share URL)
-    const kakaoUrl = `https://sharer.kakao.com/talk/friends/picker/link?url=${encodeURIComponent(shareUrl)}`;
+    const { shareUrl } = getSharePayload();
+    // Simple URL share — Kakao reads OG tags from the share page
+    const kakaoUrl = `https://story.kakao.com/share?url=${encodeURIComponent(shareUrl)}`;
     openExternalUrl(kakaoUrl);
-    void copyText(shareText, "카카오톡에 붙여넣을 문구를 복사했어요.");
+    showToast("카카오 공유 창을 열었어요.");
   }
 
   async function shareViaInstagram() {
