@@ -59,9 +59,8 @@ export async function GET(
       <div
         style={{
           display: "flex",
-          flexDirection: "column",
+          flexDirection: "row",
           alignItems: "center",
-          justifyContent: "center",
           width: "100%",
           height: "100%",
           backgroundColor: "#FAFAF7",
@@ -70,138 +69,150 @@ export async function GET(
           overflow: "hidden",
         }}
       >
-        {/* Subtle radial glow behind content */}
+        {/* Prismatic top bar */}
         <div
           style={{
             position: "absolute",
-            top: "50%",
-            left: "50%",
-            width: 800,
-            height: 800,
-            transform: "translate(-50%, -50%)",
-            background: "radial-gradient(circle, rgba(255,209,102,0.06) 0%, rgba(123,223,242,0.04) 40%, transparent 70%)",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 6,
+            background: "linear-gradient(90deg, #FF8A5B 0%, #FFD166 28%, #7BDFF2 56%, #B8F2E6 84%, #A8E6CF 100%)",
             display: "flex",
           }}
         />
 
-        {/* Top row: diamonds + PRISM */}
+        {/* Left side — emoji hero */}
         <div
           style={{
-            position: "absolute",
-            top: 28,
-            left: 0,
-            right: 0,
             display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
             justifyContent: "center",
-            alignItems: "center",
-            gap: 12,
+            width: 400,
+            height: "100%",
+            paddingLeft: 40,
           }}
         >
-          <div style={{ width: 8, height: 8, backgroundColor: "#FF8A5B", display: "flex", transform: "rotate(45deg)" }} />
-          <div style={{ width: 8, height: 8, backgroundColor: "#FFD166", display: "flex", transform: "rotate(45deg)" }} />
-          <div style={{ width: 8, height: 8, backgroundColor: "#7BDFF2", display: "flex", transform: "rotate(45deg)" }} />
-          <span style={{ fontSize: 13, fontWeight: 700, color: "#B0A090", letterSpacing: 6, marginLeft: 8 }}>
+          <div style={{ fontSize: 120, lineHeight: 1, display: "flex" }}>
+            {meta.typeEmoji}
+          </div>
+          {/* Diamonds under emoji */}
+          <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+            <div style={{ width: 10, height: 10, backgroundColor: "#FF8A5B", display: "flex", transform: "rotate(45deg)" }} />
+            <div style={{ width: 10, height: 10, backgroundColor: "#FFD166", display: "flex", transform: "rotate(45deg)" }} />
+            <div style={{ width: 10, height: 10, backgroundColor: "#7BDFF2", display: "flex", transform: "rotate(45deg)" }} />
+          </div>
+        </div>
+
+        {/* Right side — text content */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            flex: 1,
+            height: "100%",
+            paddingRight: 60,
+            paddingLeft: 20,
+          }}
+        >
+          {/* PRISM label */}
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#B0A090", letterSpacing: 6, display: "flex", marginBottom: 14 }}>
             P R I S M
-          </span>
-          <div style={{ width: 8, height: 8, backgroundColor: "#7BDFF2", display: "flex", transform: "rotate(45deg)" }} />
-          <div style={{ width: 8, height: 8, backgroundColor: "#FFD166", display: "flex", transform: "rotate(45deg)" }} />
-          <div style={{ width: 8, height: 8, backgroundColor: "#FF8A5B", display: "flex", transform: "rotate(45deg)" }} />
-        </div>
+          </div>
 
-        {/* Hero emoji */}
-        <div style={{ fontSize: 72, lineHeight: 1, display: "flex", marginBottom: 12 }}>
-          {meta.typeEmoji}
-        </div>
-
-        {/* Title */}
-        <div
-          style={{
-            fontSize: 40,
-            fontWeight: 700,
-            color: "#1A1410",
-            lineHeight: 1.3,
-            display: "flex",
-            textAlign: "center",
-            marginBottom: 16,
-          }}
-        >
-          {title}
-        </div>
-
-        {/* Type + pill row */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            marginBottom: 24,
-          }}
-        >
-          <span style={{ fontSize: 18, fontWeight: 700, color: "#1A1410" }}>
-            {meta.typeName} 타입
-          </span>
-          <span
-            style={{
-              width: 4,
-              height: 4,
-              backgroundColor: "#D0C8BE",
-              borderRadius: 2,
-              display: "flex",
-            }}
-          />
-          <span
-            style={{
-              fontSize: 14,
-              fontWeight: 700,
-              color: pill.fg,
-              backgroundColor: pill.bg,
-              padding: "4px 14px",
-              borderRadius: 16,
-            }}
-          >
-            오늘의 빵: {meta.breadName}
-          </span>
-        </div>
-
-        {/* Fortune teaser — single line in quotes */}
-        {teaser && (
+          {/* Title */}
           <div
             style={{
-              fontSize: 18,
-              color: "#6B5E52",
-              lineHeight: 1.6,
+              fontSize: 48,
+              fontWeight: 700,
+              color: "#1A1410",
+              lineHeight: 1.25,
               display: "flex",
-              textAlign: "center",
-              maxWidth: 800,
-              padding: "0 40px",
+              marginBottom: 18,
             }}
           >
-            &ldquo;{teaser.length > 60 ? teaser.slice(0, 58) + "..." : teaser}&rdquo;
+            {title}
           </div>
-        )}
 
-        {/* Footer text */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: 44,
-            display: "flex",
-            fontSize: 13,
-            color: "#A89888",
-            fontWeight: 700,
-          }}
-        >
-          퀴어문화축제에서 만나는 프리즘지점 · @prism.fin
+          {/* Type + pill row */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+              marginBottom: 20,
+            }}
+          >
+            <span style={{ fontSize: 22, fontWeight: 700, color: "#1A1410" }}>
+              {meta.typeName} 타입
+            </span>
+            <span
+              style={{
+                width: 5,
+                height: 5,
+                backgroundColor: "#D0C8BE",
+                borderRadius: 3,
+                display: "flex",
+              }}
+            />
+            <span
+              style={{
+                fontSize: 18,
+                fontWeight: 700,
+                color: pill.fg,
+                backgroundColor: pill.bg,
+                padding: "6px 18px",
+                borderRadius: 20,
+              }}
+            >
+              오늘의 빵: {meta.breadName}
+            </span>
+          </div>
+
+          {/* Fortune teaser */}
+          {teaser && (
+            <div
+              style={{
+                fontSize: 20,
+                color: "#6B5E52",
+                lineHeight: 1.6,
+                display: "flex",
+                maxWidth: 620,
+                marginBottom: 24,
+              }}
+            >
+              &ldquo;{teaser.length > 55 ? teaser.slice(0, 53) + "..." : teaser}&rdquo;
+            </div>
+          )}
+
+          {/* Thin prismatic divider */}
+          <div
+            style={{
+              width: 180,
+              height: 4,
+              borderRadius: 2,
+              background: "linear-gradient(90deg, #FF8A5B, #FFD166, #7BDFF2, #B8F2E6)",
+              display: "flex",
+              marginBottom: 14,
+            }}
+          />
+
+          {/* Footer */}
+          <div style={{ fontSize: 15, color: "#A89888", fontWeight: 700, display: "flex" }}>
+            퀴어문화축제에서 만나는 프리즘지점 · @prism.fin
+          </div>
         </div>
 
-        {/* Bold prismatic bar — bottom anchor */}
+        {/* Bottom prismatic bar */}
         <div
           style={{
             position: "absolute",
             bottom: 0,
             left: 0,
             right: 0,
-            height: 16,
+            height: 6,
             background: "linear-gradient(90deg, #FF8A5B 0%, #FFD166 28%, #7BDFF2 56%, #B8F2E6 84%, #A8E6CF 100%)",
             display: "flex",
           }}
