@@ -5,7 +5,7 @@ import { test, expect } from "playwright/test";
  * Outputs to screenshots-2026-04-12/
  */
 
-const DIR = "v3";
+const DIR = "v4";
 
 async function pickOption(page: Parameters<Parameters<typeof test>[1]>[0]["page"], text: string) {
   const btn = page.locator(`text=${text}`).first();

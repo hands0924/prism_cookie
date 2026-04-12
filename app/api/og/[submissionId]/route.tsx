@@ -105,10 +105,10 @@ export async function GET(
           <div
             style={{
               position: "absolute",
-              width: 260,
-              height: 260,
-              borderRadius: 130,
-              background: `radial-gradient(circle, ${pill.bg}88 0%, transparent 70%)`,
+              width: 300,
+              height: 300,
+              borderRadius: 150,
+              background: `radial-gradient(circle, ${pill.bg}33 0%, ${pill.bg}11 40%, transparent 70%)`,
               display: "flex",
             }}
           />
