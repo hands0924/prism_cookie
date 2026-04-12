@@ -346,6 +346,18 @@ export default function HomePage() {
     if (!submitResult) return;
     try {
       const shareFile = await getOrCreateShareImageFile();
+
+      // Mobile Safari / Kakao browser: try native share with file (shows "Save Image")
+      if (navigator.share && navigator.canShare?.({ files: [shareFile] })) {
+        try {
+          await navigator.share({ files: [shareFile] });
+          return;
+        } catch {
+          // User cancelled or share failed — fall through to download
+        }
+      }
+
+      // Chrome / desktop: anchor download
       const url = URL.createObjectURL(shareFile);
       const anchor = document.createElement("a");
       anchor.href = url;
@@ -356,24 +368,25 @@ export default function HomePage() {
       window.setTimeout(() => URL.revokeObjectURL(url), 3000);
       showToast("이미지를 저장했어요.");
     } catch {
-      showToast("이미지 저장에 실패했어요.");
+      // Last resort: open image in new tab
+      if (shareAsset.previewUrl) {
+        window.open(shareAsset.previewUrl, "_blank");
+        showToast("새 탭에서 이미지를 길게 눌러 저장해주세요.");
+      } else {
+        showToast("이미지 저장에 실패했어요.");
+      }
     }
   }
 
   async function shareNative() {
     if (!submitResult) return;
-    const { shareText, shareUrl } = getSharePayload();
+    const { shareUrl } = getSharePayload();
     if (!navigator.share) {
       await copyText(shareUrl, "공유 기능이 없어 링크를 복사했어요.");
       return;
     }
     try {
-      const imageFile = shareAsset.file;
-      if (imageFile && navigator.canShare?.({ files: [imageFile] })) {
-        await navigator.share({ text: shareText, files: [imageFile] });
-      } else {
-        await navigator.share({ text: shareText });
-      }
+      await navigator.share({ url: shareUrl });
     } catch {
       // User cancelled — no action needed
     }

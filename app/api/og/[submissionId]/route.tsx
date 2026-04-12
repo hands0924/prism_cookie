@@ -59,147 +59,173 @@ export async function GET(
       <div
         style={{
           display: "flex",
-          flexDirection: "column",
           width: "100%",
           height: "100%",
           backgroundColor: "#FAFAF7",
           fontFamily: "Noto Sans KR",
           position: "relative",
-          overflow: "hidden",
         }}
       >
-        {/* Prismatic light — soft diagonal band */}
+        {/* Thin prismatic bar — top edge */}
         <div
           style={{
             position: "absolute",
-            top: -80,
-            left: -200,
-            width: 1600,
-            height: 120,
-            transform: "rotate(-12deg)",
-            background: "linear-gradient(90deg, rgba(255,138,91,0) 0%, rgba(255,138,91,0.06) 15%, rgba(255,209,102,0.06) 35%, rgba(123,223,242,0.06) 55%, rgba(184,242,230,0.06) 75%, rgba(184,242,230,0) 100%)",
-            display: "flex",
-          }}
-        />
-
-        {/* Prismatic bar */}
-        <div
-          style={{
+            top: 0,
+            left: 0,
+            right: 0,
             height: 5,
             background: "linear-gradient(90deg, #FF8A5B, #FFD166, #7BDFF2, #B8F2E6)",
             display: "flex",
-            flexShrink: 0,
           }}
         />
 
+        {/* Left column — identity */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            padding: "26px 52px 22px",
-            flex: 1,
+            width: "42%",
+            padding: "48px 0 40px 52px",
+            justifyContent: "center",
           }}
         >
-          {/* Label */}
           <div
             style={{
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: 700,
               color: "#B0A090",
               letterSpacing: 5,
               display: "flex",
+              marginBottom: 10,
             }}
           >
             PRISM
           </div>
-
-          {/* Title */}
           <div
             style={{
-              fontSize: 38,
+              fontSize: 34,
               fontWeight: 700,
               color: "#1A1410",
-              marginTop: 6,
+              lineHeight: 1.35,
               display: "flex",
-              lineHeight: 1.3,
+              marginBottom: 24,
             }}
           >
             {title}
           </div>
 
-          {/* Type row */}
+          {/* Thin rule */}
           <div
             style={{
+              width: 100,
+              height: 1,
+              backgroundColor: "#E8E0D6",
               display: "flex",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: 10,
-              marginTop: 14,
+              marginBottom: 24,
             }}
-          >
-            <span style={{ fontSize: 26 }}>{meta.typeEmoji}</span>
-            <span style={{ fontSize: 19, fontWeight: 700, color: "#1A1410" }}>
+          />
+
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <span style={{ fontSize: 36 }}>{meta.typeEmoji}</span>
+            <span style={{ fontSize: 20, fontWeight: 700, color: "#1A1410" }}>
               {meta.typeName} 타입
             </span>
-            <span
-              style={{
-                fontSize: 14,
-                fontWeight: 700,
-                color: pill.fg,
-                backgroundColor: pill.bg,
-                padding: "4px 12px",
-                borderRadius: 16,
-              }}
-            >
-              오늘의 빵: {meta.breadName}
+          </div>
+          <span
+            style={{
+              fontSize: 13,
+              fontWeight: 700,
+              color: pill.fg,
+              backgroundColor: pill.bg,
+              padding: "4px 14px",
+              borderRadius: 16,
+              display: "flex",
+              alignSelf: "flex-start",
+            }}
+          >
+            오늘의 빵: {meta.breadName}
+          </span>
+
+          {/* Footer diamonds */}
+          <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: "auto" }}>
+            <div style={{ width: 7, height: 7, backgroundColor: "#FF8A5B", display: "flex", transform: "rotate(45deg)" }} />
+            <div style={{ width: 7, height: 7, backgroundColor: "#FFD166", display: "flex", transform: "rotate(45deg)" }} />
+            <div style={{ width: 7, height: 7, backgroundColor: "#7BDFF2", display: "flex", transform: "rotate(45deg)" }} />
+            <span style={{ fontSize: 12, color: "#8B776D", fontWeight: 700, marginLeft: 6 }}>
+              퀴어문화축제에서 만나는 프리즘지점
             </span>
           </div>
+        </div>
 
-          {/* Fortune lines */}
+        {/* Right column — fortune card */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            width: "58%",
+            padding: "48px 52px 40px 32px",
+            justifyContent: "center",
+          }}
+        >
+          {/* Fortune card — frosted glass approximation */}
           <div
             style={{
               display: "flex",
               flexDirection: "column",
-              marginTop: 20,
-              paddingTop: 16,
-              borderTop: "2px solid transparent",
-              borderImage: "linear-gradient(90deg, #FF8A5B, #FFD166, #7BDFF2, #B8F2E6) 1",
-              flex: 1,
-              gap: 2,
+              backgroundColor: "rgba(248, 247, 244, 0.85)",
+              border: "1px solid rgba(30, 20, 10, 0.05)",
+              borderRadius: 18,
+              overflow: "hidden",
             }}
           >
-            {lines.map((line: string, i: number) => (
-              <div
-                key={i}
-                style={{
-                  fontSize: 22,
-                  lineHeight: 1.65,
-                  color: "#2A1E15",
-                  fontWeight: 700,
-                  display: "flex",
-                }}
-              >
-                {line}
-              </div>
-            ))}
-          </div>
+            {/* Prismatic top accent */}
+            <div
+              style={{
+                height: 4,
+                background: "linear-gradient(90deg, #FF8A5B, #FFD166, #7BDFF2, #B8F2E6)",
+                display: "flex",
+                flexShrink: 0,
+              }}
+            />
+            {/* FORTUNE label */}
+            <div
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                color: "#B0A090",
+                letterSpacing: 4,
+                textAlign: "center",
+                display: "flex",
+                justifyContent: "center",
+                padding: "18px 0 0",
+              }}
+            >
+              FORTUNE
+            </div>
 
-          {/* Footer */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginTop: 8,
-            }}
-          >
-            <span style={{ fontSize: 14, color: "#8B776D", fontWeight: 700 }}>
-              퀴어문화축제에서 만나는 프리즘지점
-            </span>
-            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-              <div style={{ width: 8, height: 8, borderRadius: 1, backgroundColor: "#FF8A5B", display: "flex", transform: "rotate(45deg)" }} />
-              <div style={{ width: 8, height: 8, borderRadius: 1, backgroundColor: "#FFD166", display: "flex", transform: "rotate(45deg)" }} />
-              <div style={{ width: 8, height: 8, borderRadius: 1, backgroundColor: "#7BDFF2", display: "flex", transform: "rotate(45deg)" }} />
+            {/* Fortune lines */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                padding: "12px 28px 24px",
+                gap: 4,
+              }}
+            >
+              {lines.map((line: string, i: number) => (
+                <div
+                  key={i}
+                  style={{
+                    fontSize: 18,
+                    lineHeight: 1.75,
+                    color: "#2A1E15",
+                    fontWeight: 700,
+                    display: "flex",
+                  }}
+                >
+                  {line}
+                </div>
+              ))}
             </div>
           </div>
         </div>
