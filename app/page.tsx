@@ -306,7 +306,7 @@ export default function HomePage() {
   }
 
   function getShareText(shareUrl: string): string {
-    return `서울퀴어문화축제 프리즘지점 부스에서\n나의 미래 레시피를 만들어보세요 🌈\n\n포용적 금융서비스 프리즘지점\n${shareUrl}`;
+    return `퀴어문화축제 프리즘지점 부스에서\n나의 미래 레시피를 만들어보세요 🌈\n\n포용적 금융서비스 프리즘지점\n${shareUrl}`;
   }
 
   function getSharePayload(): { title: string; shareUrl: string; shareText: string } {
@@ -438,16 +438,22 @@ export default function HomePage() {
   }
 
   async function shareViaKakao() {
-    const { shareUrl } = getSharePayload();
-    // Simple URL share — Kakao reads OG tags from the share page
-    const kakaoUrl = `https://story.kakao.com/share?url=${encodeURIComponent(shareUrl)}`;
-    openExternalUrl(kakaoUrl);
-    showToast("카카오 공유 창을 열었어요.");
+    const { title, shareUrl, shareText } = getSharePayload();
+    // Use native share sheet — on mobile, users can pick KakaoTalk
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text: shareText, url: shareUrl });
+        return;
+      } catch {
+        // User cancelled — fall through to copy
+      }
+    }
+    await copyText(shareUrl, "링크를 복사했어요. 카카오톡에 붙여넣기 해주세요!");
   }
 
   async function shareViaInstagram() {
     const { shareUrl, shareText } = getSharePayload();
-    const captionText = `${shareText}\n\n#프리즘지점 #서울퀴어문화축제 #BakeYourFuture #미래레시피`;
+    const captionText = `${shareText}\n\n#프리즘지점 #퀴어문화축제 #BakeYourFuture #미래레시피`;
     let imageFile: File | null = null;
     try {
       imageFile = await getOrCreateShareImageFile();
@@ -729,7 +735,7 @@ export default function HomePage() {
                 src={shareAsset.previewUrl}
                 alt="미래 레시피 카드"
                 width={1080}
-                height={1440}
+                height={1350}
                 unoptimized
               />
             ) : shareAsset.loading ? (
