@@ -438,11 +438,11 @@ export default function HomePage() {
   }
 
   async function shareViaKakao() {
-    const { title, shareUrl, shareText } = getSharePayload();
-    // Use native share sheet — on mobile, users can pick KakaoTalk
+    const { shareUrl, shareText } = getSharePayload();
+    // shareText already includes the URL — only pass text to avoid doubling
     if (navigator.share) {
       try {
-        await navigator.share({ title, text: shareText, url: shareUrl });
+        await navigator.share({ text: shareText });
         return;
       } catch {
         // User cancelled — fall through to copy
