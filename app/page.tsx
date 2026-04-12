@@ -295,13 +295,11 @@ export default function HomePage() {
   }
 
   function getShareUrl(): string {
-    if (typeof window === "undefined") {
-      return "";
-    }
+    const origin = "https://prismcookie.vercel.app";
     if (submitResult?.submissionId) {
-      return `${window.location.origin}/r/${submitResult.submissionId}`;
+      return `${origin}/r/${submitResult.submissionId}`;
     }
-    return window.location.href;
+    return origin;
   }
 
   function getShareText(shareUrl: string): string {
