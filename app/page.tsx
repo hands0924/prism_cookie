@@ -735,7 +735,7 @@ export default function HomePage() {
                 src={shareAsset.previewUrl}
                 alt="미래 레시피 카드"
                 width={1080}
-                height={1440}
+                height={1350}
                 unoptimized
               />
             ) : shareAsset.loading ? (

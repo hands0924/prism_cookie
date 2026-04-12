@@ -29,7 +29,7 @@ const DEFAULT_THEME: Theme = { primary: "#E8643E", tagBg: "#FFE4DA", tagText: "#
 function getTheme(b: string): Theme { return THEMES[b] ?? DEFAULT_THEME; }
 
 const W = 1080;
-const H = 1440;
+const H = 1350; // 4:5 — Instagram's max portrait ratio
 const PAD = 80;
 const INNER = W - PAD * 2;
 const FONT = '"Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif';
