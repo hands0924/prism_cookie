@@ -656,31 +656,29 @@ export default function HomePage() {
               const lines = (submitResult.message ?? []).map(l => l.trim()).filter(Boolean);
               return (
                 <div className="fortune-html-card">
-                  <div className="fortune-html-card__band">
-                    <span className="fortune-html-card__band-text">P R I S M</span>
+                  <div className="fortune-html-card__bar" />
+                  <div className="fortune-html-card__label">PRISM</div>
+                  <div className="fortune-html-card__title">{submitResult.name}님의 미래 레시피</div>
+                  <div className="fortune-html-card__rule" />
+                  <div className="fortune-html-card__emoji">{typeProfile.typeEmoji}</div>
+                  <div className="fortune-html-card__type">{typeProfile.typeName} 타입</div>
+                  <div className="fortune-html-card__pill" style={{ background: pill.bg, color: pill.fg }}>
+                    오늘의 빵: {submitResult.breadName}
                   </div>
-                  <div className="fortune-html-card__body">
-                    <div className="fortune-html-card__title">{submitResult.name}님의 미래 레시피</div>
-                    <div className="fortune-html-card__emoji">{typeProfile.typeEmoji}</div>
-                    <div className="fortune-html-card__type">{typeProfile.typeName} 타입</div>
-                    <div className="fortune-html-card__pill" style={{ background: pill.bg, color: pill.fg }}>
-                      오늘의 빵: {submitResult.breadName}
+                  <div className="fortune-html-card__desc">{typeProfile.typeDesc}</div>
+                  <div className="fortune-html-card__divider" />
+                  <div className="fortune-html-card__fortune-label">FORTUNE</div>
+                  <div className="fortune-html-card__fortune">
+                    {lines.map((line, i) => <p key={i}>{line}</p>)}
+                  </div>
+                  <div className="fortune-html-card__footer">
+                    <div className="fortune-html-card__diamonds">
+                      <span style={{ background: "#FF8A5B" }} />
+                      <span style={{ background: "#FFD166" }} />
+                      <span style={{ background: "#7BDFF2" }} />
                     </div>
-                    <div className="fortune-html-card__desc">{typeProfile.typeDesc}</div>
-                    <div className="fortune-html-card__divider" />
-                    <div className="fortune-html-card__fortune-label">FORTUNE</div>
-                    <div className="fortune-html-card__fortune">
-                      {lines.map((line, i) => <p key={i}>{line}</p>)}
-                    </div>
-                    <div className="fortune-html-card__footer">
-                      <div className="fortune-html-card__diamonds">
-                        <span style={{ background: "#FF8A5B" }} />
-                        <span style={{ background: "#FFD166" }} />
-                        <span style={{ background: "#7BDFF2" }} />
-                      </div>
-                      <div className="fortune-html-card__footer-text">퀴어문화축제에서 만나는 프리즘지점</div>
-                      <div className="fortune-html-card__handle">@prism.fin</div>
-                    </div>
+                    <div className="fortune-html-card__footer-text">퀴어문화축제에서 만나는 프리즘지점</div>
+                    <div className="fortune-html-card__handle">@prism.fin</div>
                   </div>
                 </div>
               );
