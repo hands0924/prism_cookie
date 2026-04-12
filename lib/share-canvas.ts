@@ -173,87 +173,99 @@ export async function generateShareCardPng(input: ShareCardInput): Promise<{
   const msgPadV = 28;
   const msgH = msgPadV + msgLines.length * msgLineH + msgPadV;
 
-  // Total content block height
-  const GAP = 28;  // standard gap between sections
-  const headerH = 16;                       // "PRISM"
-  const ruleH = 1;
-  const emojiH = 80;                        // emoji
-  const typeNameH = 36;                     // type name
-  const pillH = 42;                         // pill
-  const dividerH = 3;                       // prismatic line
-  const fortuneLabelH = 14;                 // "FORTUNE"
-  const footerH = 70;                       // diamonds + text + handle
+  // Layout constants
+  const GAP = 24;
+  const HEADER_BAND = 88; // vivid prismatic header band
+  const emojiH = 80;
+  const typeNameH = 36;
+  const pillH = 42;
+  const dividerH = 3;
+  const fortuneLabelH = 14;
+  const footerH = 66;
 
-  const totalH =
-    headerH + GAP * 0.6 +
-    titleH + GAP * 0.6 +
-    ruleH + GAP +
-    emojiH + 12 +
-    typeNameH + 14 +
-    pillH + 10 +
-    descH + GAP +
-    dividerH + GAP * 0.8 +
-    fortuneLabelH + GAP * 0.7 +
-    msgH + GAP +
+  const contentH =
+    GAP +                     // gap after header band
+    titleH + GAP * 0.5 +
+    emojiH + 10 +
+    typeNameH + 12 +
+    pillH + 8 +
+    descH + GAP * 0.8 +
+    dividerH + GAP * 0.7 +
+    fortuneLabelH + GAP * 0.6 +
+    msgH + GAP * 0.8 +
     footerH;
 
-  // Vertical centering — start Y so content is centered in the card
-  const startY = Math.max(48, (H - totalH) / 2);
+  // Content starts right after the header band, vertically centered in remaining space
+  const remainH = H - HEADER_BAND;
+  const contentStartY = HEADER_BAND + Math.max(16, (remainH - contentH) / 2);
 
   /* ── 1. Background ── */
   ctx.fillStyle = "#FAFAF7";
   ctx.fillRect(0, 0, W, H);
 
-  /* ── 2. Prismatic light bands — MORE VISIBLE ── */
-  drawPrismaticBand(ctx, W * 0.4, startY + totalH * 0.15, 1600, 100, -18, 0.10);
-  drawPrismaticBand(ctx, W * 0.6, startY + totalH * 0.85, 1400, 80, -14, 0.07);
+  /* ── 2. Prismatic light band — visible in the content area ── */
+  drawPrismaticBand(ctx, W * 0.5, H * 0.55, 1500, 100, -16, 0.08);
 
-  /* ── 3. Card — subtle frosted container ── */
+  /* ── 3. Card container ── */
   const cX = 28, cY = 28, cH = H - 56;
   ctx.save();
-  ctx.shadowColor = "rgba(30,20,10,0.04)";
-  ctx.shadowBlur = 48;
+  ctx.shadowColor = "rgba(30,20,10,0.05)";
+  ctx.shadowBlur = 40;
   ctx.shadowOffsetY = 6;
   roundRect(ctx, cX, cY, cW, cH, 36);
-  ctx.fillStyle = "rgba(255,253,250,0.85)";
+  ctx.fillStyle = "rgba(255,253,250,0.88)";
   ctx.fill();
   ctx.restore();
 
-  /* ── Draw content from startY ── */
-  let y = startY;
+  /* ── 4. PRISMATIC HEADER BAND — the bold anchor ── */
+  ctx.save();
+  roundRect(ctx, cX, cY, cW, cH, 36);
+  ctx.clip();
+  const hg = ctx.createLinearGradient(cX, cY, cX + cW, cY + HEADER_BAND);
+  hg.addColorStop(0, "#FF8A5B");
+  hg.addColorStop(0.28, "#FFD166");
+  hg.addColorStop(0.56, "#7BDFF2");
+  hg.addColorStop(0.84, "#B8F2E6");
+  hg.addColorStop(1, "#A8E6CF");
+  ctx.fillStyle = hg;
+  ctx.fillRect(cX, cY, cW, HEADER_BAND);
+  // Soft bottom fade so it blends into cream
+  const fade = ctx.createLinearGradient(0, cY + HEADER_BAND - 20, 0, cY + HEADER_BAND);
+  fade.addColorStop(0, "rgba(250,250,247,0)");
+  fade.addColorStop(1, "rgba(250,250,247,1)");
+  ctx.fillStyle = fade;
+  ctx.fillRect(cX, cY + HEADER_BAND - 20, cW, 20);
+  ctx.restore();
 
-  // "PRISM" header
+  // "PRISM" on the gradient band — white, bold
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `600 15px ${FONT}`;
-  ctx.fillStyle = "#B0A090";
-  ctx.fillText("P R I S M", W / 2, y + 8);
-  y += headerH + GAP * 0.6;
+  ctx.font = `700 18px ${FONT}`;
+  ctx.fillStyle = "rgba(255,255,255,0.9)";
+  ctx.fillText("P R I S M", W / 2, cY + HEADER_BAND / 2);
+
+  /* ── 5. Content below the band ── */
+  let y = contentStartY;
 
   // Title
   ctx.textBaseline = "alphabetic";
   ctx.font = `800 56px ${FONT}`;
   ctx.fillStyle = "#1A1410";
   for (const line of titleLines) {
-    ctx.fillText(line, W / 2, y + 48);
+    ctx.fillText(line, W / 2, y + 46);
     y += 68;
   }
-  y += GAP * 0.6;
-
-  // Thin rule
-  ctx.fillStyle = "#E8E0D6";
-  ctx.fillRect(W / 2 - 140, y, 280, 1);
-  y += ruleH + GAP;
+  y += GAP * 0.5;
 
   // Emoji with glow
   ctx.save();
-  ctx.globalAlpha = 0.10;
-  const eg = ctx.createRadialGradient(W / 2, y + 40, 0, W / 2, y + 40, 80);
+  ctx.globalAlpha = 0.15;
+  const eg = ctx.createRadialGradient(W / 2, y + 40, 0, W / 2, y + 40, 90);
   eg.addColorStop(0, theme.primary);
   eg.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = eg;
   ctx.beginPath();
-  ctx.arc(W / 2, y + 40, 80, 0, Math.PI * 2);
+  ctx.arc(W / 2, y + 40, 90, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 
@@ -261,31 +273,31 @@ export async function generateShareCardPng(input: ShareCardInput): Promise<{
   ctx.textBaseline = "middle";
   ctx.font = `400 76px ${EMOJI_FONT}`;
   ctx.fillText(input.typeEmoji, W / 2, y + 40);
-  y += emojiH + 12;
+  y += emojiH + 10;
 
   // Type name
   ctx.font = `800 34px ${FONT}`;
   ctx.fillStyle = "#1A1410";
   ctx.fillText(`${input.typeName} 타입`, W / 2, y + 18);
-  y += typeNameH + 14;
+  y += typeNameH + 12;
 
   // Pill
   drawPill(ctx, `오늘의 빵: ${input.breadName}`, W / 2, y + 20, theme.tagBg, theme.tagText, 20);
-  y += pillH + 10;
+  y += pillH + 8;
 
   // Description
   ctx.font = `400 24px ${FONT}`;
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = "#8B7B6E";
   for (const line of descLines) {
-    ctx.fillText(line, W / 2, y + 20);
+    ctx.fillText(line, W / 2, y + 18);
     y += 36;
   }
-  y += GAP;
+  y += GAP * 0.8;
 
   // Prismatic divider
   drawPrismaticLine(ctx, W / 2 - 100, y, 200, 3);
-  y += dividerH + GAP * 0.8;
+  y += dividerH + GAP * 0.7;
 
   // "FORTUNE" label
   ctx.textAlign = "center";
@@ -293,22 +305,22 @@ export async function generateShareCardPng(input: ShareCardInput): Promise<{
   ctx.font = `600 13px ${FONT}`;
   ctx.fillStyle = "#B0A090";
   ctx.fillText("F O R T U N E", W / 2, y + 7);
-  y += fortuneLabelH + GAP * 0.7;
+  y += fortuneLabelH + GAP * 0.6;
 
-  // Message area
+  // Message area — frosted card with visible prismatic top
   const msgX = PAD;
   roundRect(ctx, msgX, y, INNER, msgH, 20);
-  ctx.fillStyle = "rgba(250,250,248,0.7)";
+  ctx.fillStyle = "rgba(248,247,244,0.8)";
   ctx.fill();
-  ctx.strokeStyle = "rgba(30,20,10,0.04)";
+  ctx.strokeStyle = "rgba(30,20,10,0.05)";
   ctx.lineWidth = 1;
   ctx.stroke();
 
-  // Prismatic top accent
+  // Prismatic top accent — slightly thicker so it's visible
   ctx.save();
   roundRect(ctx, msgX, y, INNER, msgH, 20);
   ctx.clip();
-  drawPrismaticLine(ctx, msgX, y, INNER, 3);
+  drawPrismaticLine(ctx, msgX, y, INNER, 4);
   ctx.restore();
 
   // Message text
@@ -321,22 +333,22 @@ export async function generateShareCardPng(input: ShareCardInput): Promise<{
     ctx.fillText(line, msgX + 32, my);
     my += msgLineH;
   }
-  y += msgH + GAP;
+  y += msgH + GAP * 0.8;
 
   // Footer
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  diamond(ctx, W / 2 - 24, y + 8, 7, "#FF8A5B");
-  diamond(ctx, W / 2, y + 8, 7, "#FFD166");
-  diamond(ctx, W / 2 + 24, y + 8, 7, "#7BDFF2");
+  diamond(ctx, W / 2 - 24, y + 6, 7, "#FF8A5B");
+  diamond(ctx, W / 2, y + 6, 7, "#FFD166");
+  diamond(ctx, W / 2 + 24, y + 6, 7, "#7BDFF2");
 
   ctx.font = `600 18px ${FONT}`;
   ctx.fillStyle = "#8B776D";
-  ctx.fillText("퀴어문화축제에서 만나는 프리즘지점", W / 2, y + 34);
+  ctx.fillText("퀴어문화축제에서 만나는 프리즘지점", W / 2, y + 30);
 
   ctx.font = `400 15px ${FONT}`;
   ctx.fillStyle = "#A89888";
-  ctx.fillText("@prism.fin", W / 2, y + 56);
+  ctx.fillText("@prism.fin", W / 2, y + 50);
 
   /* ── Export ── */
   const blob = await new Promise<Blob>((resolve, reject) => {
