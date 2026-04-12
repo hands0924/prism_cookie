@@ -1290,6 +1290,7 @@ textarea {
   font-size: 44px;
   line-height: 1;
   margin-bottom: 8px;
+  filter: drop-shadow(0 0 16px rgba(180, 140, 60, 0.12));
 }
 .fortune-html-card__type {
   font-size: 17px;

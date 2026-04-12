@@ -81,7 +81,7 @@ test.describe("Share card & sharing flow", () => {
 
     // Take screenshot for visual inspection
     await page.screenshot({
-      path: "reports/share-card-result.png",
+      path: "screenshots-2026-04-12/01-result-croissant.png",
       fullPage: true,
     });
   });
@@ -114,7 +114,7 @@ test.describe("Share card & sharing flow", () => {
 
     // Take screenshot of the share panel
     await page.screenshot({
-      path: "reports/share-panel.png",
+      path: "screenshots-2026-04-12/02-share-panel.png",
       fullPage: true,
     });
   });
@@ -144,7 +144,7 @@ test.describe("Share card & sharing flow", () => {
     await expect(page.locator(".fortune-html-card")).toBeVisible();
 
     await page.screenshot({
-      path: "reports/share-card-pretzel.png",
+      path: "screenshots-2026-04-12/03-result-pretzel.png",
       fullPage: true,
     });
   });
