@@ -129,7 +129,7 @@ export async function GET(
           }}
         >
           {/* PRISM label */}
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#B0A090", letterSpacing: 6, display: "flex", marginBottom: 8 }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#A09080", letterSpacing: 6, display: "flex", marginBottom: 8 }}>
             P R I S M
           </div>
 
@@ -229,7 +229,7 @@ export async function GET(
             <div style={{ width: 8, height: 8, backgroundColor: "#FF8A5B", display: "flex", transform: "rotate(45deg)" }} />
             <div style={{ width: 8, height: 8, backgroundColor: "#FFD166", display: "flex", transform: "rotate(45deg)" }} />
             <div style={{ width: 8, height: 8, backgroundColor: "#7BDFF2", display: "flex", transform: "rotate(45deg)" }} />
-            <span style={{ fontSize: 13, color: "#A89888", fontWeight: 400, marginLeft: 6 }}>
+            <span style={{ fontSize: 14, color: "#8B7B6E", fontWeight: 400, marginLeft: 6 }}>
               퀴어문화축제에서 만나는 프리즘지점 · @prism.fin
             </span>
           </div>
