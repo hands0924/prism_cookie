@@ -58,39 +58,23 @@ test.describe("Share card & sharing flow", () => {
       timeout: 15000,
     });
 
-    // Wait for PNG card to load (loading state → image)
-    await page.waitForFunction(
-      () => {
-        const img = document.querySelector(
-          ".fortune-share-preview",
-        ) as HTMLImageElement | null;
-        return img && img.complete && img.naturalWidth > 0;
-      },
-      { timeout: 10000 },
-    );
+    // Wait for HTML card to render
+    await page.waitForSelector(".fortune-html-card", { timeout: 10000 });
 
-    // Verify the image loaded and has correct aspect ratio
-    const img = page.locator(".fortune-share-preview");
-    await expect(img).toBeVisible();
-    const box = await img.boundingBox();
-    expect(box).toBeTruthy();
-    // Card should be roughly 3:4 aspect ratio (1080:1440)
-    if (box) {
-      const ratio = box.height / box.width;
-      expect(ratio).toBeGreaterThan(1.1);
-      expect(ratio).toBeLessThan(1.6);
-    }
+    // Verify the HTML card rendered with content
+    const card = page.locator(".fortune-html-card");
+    await expect(card).toBeVisible();
+    await expect(card.locator(".fortune-html-card__title")).toBeVisible();
+    await expect(card.locator(".fortune-html-card__fortune")).toBeVisible();
 
-    // Check no overflow — preview shell should contain the image
-    const shellBox = await page
-      .locator(".fortune-share-preview-shell")
-      .boundingBox();
+    // Check no overflow — card should be within shell bounds
+    const cardBox = await card.boundingBox();
+    const shellBox = await page.locator(".fortune-share-preview-shell").boundingBox();
+    expect(cardBox).toBeTruthy();
     expect(shellBox).toBeTruthy();
-    if (box && shellBox) {
-      // Image should not exceed shell bounds
-      expect(box.x).toBeGreaterThanOrEqual(shellBox.x - 2);
-      expect(box.y).toBeGreaterThanOrEqual(shellBox.y - 2);
-      expect(box.x + box.width).toBeLessThanOrEqual(
+    if (cardBox && shellBox) {
+      expect(cardBox.x).toBeGreaterThanOrEqual(shellBox.x - 2);
+      expect(cardBox.x + cardBox.width).toBeLessThanOrEqual(
         shellBox.x + shellBox.width + 2,
       );
     }
@@ -120,15 +104,13 @@ test.describe("Share card & sharing flow", () => {
 
     await page.waitForSelector(".fortune-share-panel", { timeout: 15000 });
 
-    // All share buttons should be present
+    // All 3 share buttons should be present
     const sharePanel = page.locator(".fortune-share-panel");
     await expect(sharePanel).toBeVisible();
 
-    await expect(sharePanel.locator("text=카카오톡")).toBeVisible();
     await expect(sharePanel.locator("button[aria-label='X']")).toBeVisible();
-    await expect(sharePanel.locator("text=인스타")).toBeVisible();
     await expect(sharePanel.locator("button[aria-label='저장']")).toBeVisible();
-    await expect(sharePanel.locator("text=링크")).toBeVisible();
+    await expect(sharePanel.locator("button[aria-label='공유']")).toBeVisible();
 
     // Take screenshot of the share panel
     await page.screenshot({
@@ -157,18 +139,9 @@ test.describe("Share card & sharing flow", () => {
       timeout: 15000,
     });
 
-    // Wait for the PNG to render
-    await page.waitForFunction(
-      () => {
-        const img = document.querySelector(
-          ".fortune-share-preview",
-        ) as HTMLImageElement | null;
-        return img && img.complete && img.naturalWidth > 0;
-      },
-      { timeout: 10000 },
-    );
-
-    await expect(page.locator(".fortune-share-preview")).toBeVisible();
+    // Wait for the HTML card to render
+    await page.waitForSelector(".fortune-html-card", { timeout: 10000 });
+    await expect(page.locator(".fortune-html-card")).toBeVisible();
 
     await page.screenshot({
       path: "reports/share-card-pretzel.png",

@@ -1156,14 +1156,6 @@ textarea {
   margin-bottom: 28px;
 }
 
-.fortune-share-panel-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-sub);
-  text-align: center;
-  margin-bottom: 14px;
-  letter-spacing: 0.5px;
-}
 
 .fortune-share-icon-row {
   display: flex;
@@ -1203,28 +1195,13 @@ textarea {
   height: 22px;
 }
 
-.fortune-share-icon--kakao {
-  background: #FEE500;
-  color: #3C1E1E;
-}
-
 .fortune-share-icon--x {
   background: #000;
   color: #fff;
 }
 
-.fortune-share-icon--insta {
-  background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-  color: #fff;
-}
-
 .fortune-share-icon--save {
   background: var(--cta);
-  color: #fff;
-}
-
-.fortune-share-icon--link {
-  background: #3E2D25;
   color: #fff;
 }
 
@@ -1269,6 +1246,142 @@ textarea {
   font-weight: 700;
   color: var(--text);
   text-align: center;
+}
+
+/* ── HTML Card Preview (crisp, matches /r/ page design) ── */
+.fortune-html-card {
+  padding: 24px 20px 20px;
+  text-align: center;
+  background: rgba(250, 250, 248, 0.92);
+  position: relative;
+  overflow: hidden;
+}
+.fortune-html-card__bar {
+  height: 4px;
+  border-radius: 2px;
+  margin-bottom: 20px;
+  background: linear-gradient(90deg, #FF8A5B, #FFD166, #7BDFF2, #B8F2E6);
+}
+.fortune-html-card__label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #B0A090;
+  letter-spacing: 5px;
+  margin-bottom: 6px;
+}
+.fortune-html-card__title {
+  font-size: clamp(20px, 5vw, 26px);
+  font-weight: 800;
+  line-height: 1.35;
+  color: #1A1410;
+  margin-bottom: 16px;
+}
+.fortune-html-card__rule {
+  width: 120px;
+  height: 1px;
+  background: #E8E0D6;
+  margin: 0 auto 16px;
+}
+.fortune-html-card__emoji {
+  font-size: 44px;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.fortune-html-card__type {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1A1410;
+  margin-bottom: 8px;
+}
+.fortune-html-card__pill {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+.fortune-html-card__desc {
+  font-size: 13px;
+  color: #8B7B6E;
+  line-height: 1.65;
+  max-width: 320px;
+  margin: 0 auto 16px;
+}
+.fortune-html-card__divider {
+  width: 100px;
+  height: 3px;
+  border-radius: 2px;
+  margin: 0 auto 14px;
+  background: linear-gradient(90deg, #FF8A5B, #FFD166, #7BDFF2, #B8F2E6);
+}
+.fortune-html-card__fortune-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: #B0A090;
+  letter-spacing: 4px;
+  margin-bottom: 10px;
+}
+.fortune-html-card__fortune {
+  background: rgba(248, 247, 244, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(30, 20, 10, 0.04);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  position: relative;
+  overflow: hidden;
+  text-align: left;
+}
+.fortune-html-card__fortune::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #FF8A5B, #FFD166, #7BDFF2, #B8F2E6);
+}
+.fortune-html-card__fortune p {
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 0 0 6px;
+  color: #2A1E15;
+}
+.fortune-html-card__fortune p:last-child {
+  margin-bottom: 0;
+}
+.fortune-html-card__footer {
+  text-align: center;
+}
+.fortune-html-card__diamonds {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.fortune-html-card__diamonds span {
+  width: 6px;
+  height: 6px;
+  display: block;
+  transform: rotate(45deg);
+}
+.fortune-html-card__footer-text {
+  font-size: 11px;
+  color: #8B776D;
+  font-weight: 600;
+}
+.fortune-html-card__handle {
+  font-size: 10px;
+  color: #A89888;
+  margin-top: 2px;
+}
+
+/* ── Share icon: 공유 (native) ── */
+.fortune-share-icon--share {
+  background: linear-gradient(135deg, #FF8A5B, #FFD166, #7BDFF2);
+  color: #fff;
 }
 
 .fortune-btn-share,

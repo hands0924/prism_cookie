@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { DEFAULT_TYPE_DESC, DEFAULT_TYPE_EMOJI, DEFAULT_TYPE_NAME, getTypeProfile } from "@/lib/bread";
 import { generateShareCardPng, type ShareCardInput } from "@/lib/share-canvas";
@@ -343,79 +342,41 @@ export default function HomePage() {
     throw new Error(shareAsset.error ?? "missing_share_asset");
   }
 
-  async function saveShareImage(file?: File) {
-    if (!submitResult) {
-      return;
-    }
+  async function saveShareImage() {
+    if (!submitResult) return;
     try {
-      const shareFile = file ?? (await getOrCreateShareImageFile());
+      const shareFile = await getOrCreateShareImageFile();
       const url = URL.createObjectURL(shareFile);
-      const isIOS = /iPad|iPhone|iPod/i.test(navigator.userAgent);
-      const supportsDownload = "download" in HTMLAnchorElement.prototype;
-      if (isIOS || !supportsDownload) {
-        window.open(url, "_blank", "noopener,noreferrer");
-        showToast("새 탭에서 이미지를 길게 눌러 저장해 주세요.");
-        window.setTimeout(() => URL.revokeObjectURL(url), 5000);
-        return;
-      }
       const anchor = document.createElement("a");
       anchor.href = url;
       anchor.download = shareFile.name;
       document.body.appendChild(anchor);
       anchor.click();
       document.body.removeChild(anchor);
-      URL.revokeObjectURL(url);
+      window.setTimeout(() => URL.revokeObjectURL(url), 3000);
       showToast("이미지를 저장했어요.");
-    } catch (error) {
-      await logClientIssue("image_save_failed", {
-        error: error instanceof Error ? error.message : "unknown_save_failure",
-        hasShareAsset: Boolean(shareAsset.file),
-        shareAssetError: shareAsset.error ?? null
-      });
-      if (shareAsset.previewUrl) {
-        openExternalUrl(shareAsset.previewUrl);
-        showToast("저장이 어려워 새 탭에서 이미지를 열었어요. 길게 눌러 저장해 주세요.");
-        return;
-      }
-      showToast("이미지 저장에 실패했어요. 링크를 먼저 복사해둘게요.");
-      await copyText(getSharePayload().shareUrl, "링크를 복사했어요.");
+    } catch {
+      showToast("이미지 저장에 실패했어요.");
     }
   }
 
-  async function shareToSocialMedia() {
-    if (!submitResult) {
+  async function shareNative() {
+    if (!submitResult) return;
+    const { shareText, shareUrl } = getSharePayload();
+    if (!navigator.share) {
+      await copyText(shareUrl, "공유 기능이 없어 링크를 복사했어요.");
       return;
     }
-    const { title, shareUrl, shareText } = getSharePayload();
-    const imageFile = shareAsset.file;
-
-    if (navigator.share) {
-      try {
-        if (imageFile && navigator.canShare?.({ files: [imageFile] })) {
-          await navigator.share({
-            title,
-            text: shareText,
-            url: shareUrl,
-            files: [imageFile]
-          });
-        } else {
-          await navigator.share({
-            title,
-            text: shareText,
-            url: shareUrl
-          });
-        }
-        return;
-      } catch (error) {
-        await logClientIssue("system_share_failed", {
-          error: error instanceof Error ? error.message : "unknown_system_share_failure",
-          hasImageFile: Boolean(imageFile)
-        });
-        await copyText(shareUrl, "기기 공유를 열 수 없어서 링크를 복사했어요.");
-        return;
+    try {
+      const imageFile = shareAsset.file;
+      if (imageFile && navigator.canShare?.({ files: [imageFile] })) {
+        await navigator.share({ text: shareText, files: [imageFile] });
+      } else {
+        await navigator.share({ text: shareText });
       }
+    } catch {
+      // User cancelled — no action needed
     }
-    await copyText(shareUrl, "공유 기능을 열 수 없어 링크를 복사했어요.");
   }
 
   async function shareViaTwitter() {
@@ -429,64 +390,6 @@ export default function HomePage() {
     showToast("X 공유 창을 열었어요. 트윗에 이미지 카드가 표시돼요.");
   }
 
-  async function shareViaMessage() {
-    const { shareText } = getSharePayload();
-    const isIOS = /iPad|iPhone|iPod/i.test(navigator.userAgent);
-    const separator = isIOS ? "&" : "?";
-    window.location.href = `sms:${separator}body=${encodeURIComponent(shareText)}`;
-    showToast("메시지 앱으로 이동합니다.");
-  }
-
-  async function shareViaKakao() {
-    const { shareUrl, shareText } = getSharePayload();
-    // shareText already includes the URL — only pass text to avoid doubling
-    if (navigator.share) {
-      try {
-        await navigator.share({ text: shareText });
-        return;
-      } catch {
-        // User cancelled — fall through to copy
-      }
-    }
-    await copyText(shareUrl, "링크를 복사했어요. 카카오톡에 붙여넣기 해주세요!");
-  }
-
-  async function shareViaInstagram() {
-    const { shareUrl, shareText } = getSharePayload();
-    const captionText = `${shareText}\n\n#프리즘지점 #퀴어문화축제 #BakeYourFuture #미래레시피`;
-    let imageFile: File | null = null;
-    try {
-      imageFile = await getOrCreateShareImageFile();
-    } catch (error) {
-      await logClientIssue("instagram_share_prepare_failed", {
-        error: error instanceof Error ? error.message : "unknown_instagram_prepare_failure"
-      });
-      imageFile = null;
-    }
-
-    // On mobile: try native share with image file (user picks Instagram)
-    if (navigator.share && imageFile && navigator.canShare?.({ files: [imageFile] })) {
-      try {
-        await navigator.share({
-          title: "Prism Future Recipe",
-          text: captionText,
-          files: [imageFile]
-        });
-        return;
-      } catch {
-        // User cancelled — fall through to save + copy flow
-      }
-    }
-
-    // Desktop / fallback: save image → copy caption → open Instagram
-    if (imageFile) {
-      await saveShareImage(imageFile);
-    } else {
-      showToast("이미지 준비가 덜 되어 링크와 문구를 먼저 복사할게요.");
-    }
-    await copyText(captionText, "인스타 업로드용 문구를 복사했어요. 이미지와 함께 붙여넣기 해주세요!");
-    openExternalUrl("https://www.instagram.com/");
-  }
 
   return (
     <main className="fortune-app">
@@ -729,16 +632,44 @@ export default function HomePage() {
           <div className="fortune-result-label">Prism Future Recipe</div>
           <div className="fortune-result-title">{submitResult ? `${submitResult.name}님의 미래 레시피` : "당신의 미래 레시피"}</div>
           <div className="fortune-share-preview-shell">
-            {shareAsset.previewUrl ? (
-              <Image
-                className="fortune-share-preview"
-                src={shareAsset.previewUrl}
-                alt="미래 레시피 카드"
-                width={1080}
-                height={1350}
-                unoptimized
-              />
-            ) : shareAsset.loading ? (
+            {submitResult ? (() => {
+              const pill = {
+                크루아상: { bg: "#FFF0D6", fg: "#9A7020" },
+                통밀식빵: { bg: "#F4E8D8", fg: "#5C4828" },
+                팬케이크: { bg: "#FFE4DA", fg: "#C44E28" },
+                프레첼: { bg: "#F6E8D4", fg: "#7A4810" },
+                브리오슈: { bg: "#FFF0DA", fg: "#8C5C28" },
+              }[submitResult.breadName ?? ""] ?? { bg: "#FFE4DA", fg: "#C44E28" };
+              const lines = (submitResult.message ?? []).map(l => l.trim()).filter(Boolean);
+              return (
+                <div className="fortune-html-card">
+                  <div className="fortune-html-card__bar" />
+                  <div className="fortune-html-card__label">PRISM</div>
+                  <div className="fortune-html-card__title">{submitResult.name}님의 미래 레시피</div>
+                  <div className="fortune-html-card__rule" />
+                  <div className="fortune-html-card__emoji">{typeProfile.typeEmoji}</div>
+                  <div className="fortune-html-card__type">{typeProfile.typeName} 타입</div>
+                  <div className="fortune-html-card__pill" style={{ background: pill.bg, color: pill.fg }}>
+                    오늘의 빵: {submitResult.breadName}
+                  </div>
+                  <div className="fortune-html-card__desc">{typeProfile.typeDesc}</div>
+                  <div className="fortune-html-card__divider" />
+                  <div className="fortune-html-card__fortune-label">FORTUNE</div>
+                  <div className="fortune-html-card__fortune">
+                    {lines.map((line, i) => <p key={i}>{line}</p>)}
+                  </div>
+                  <div className="fortune-html-card__footer">
+                    <div className="fortune-html-card__diamonds">
+                      <span style={{ background: "#FF8A5B" }} />
+                      <span style={{ background: "#FFD166" }} />
+                      <span style={{ background: "#7BDFF2" }} />
+                    </div>
+                    <div className="fortune-html-card__footer-text">퀴어문화축제에서 만나는 프리즘지점</div>
+                    <div className="fortune-html-card__handle">@prism.fin</div>
+                  </div>
+                </div>
+              );
+            })() : shareAsset.loading ? (
               <div className="fortune-share-preview-placeholder">
                 <div className="fortune-share-preview-copy">카드를 만들고 있어요...</div>
               </div>
@@ -748,29 +679,15 @@ export default function HomePage() {
               </div>
             )}
           </div>
-          <div className="fortune-result-capture-hint">보이는 카드 그대로 PNG 이미지로 저장·공유돼요</div>
         </div>
 
         <section className="fortune-share-panel" aria-label="공유 옵션">
-          <div className="fortune-share-panel-title">공유하기</div>
           <div className="fortune-share-icon-row">
-            <button className="fortune-share-icon-btn" type="button" onClick={shareViaKakao} aria-label="카카오톡">
-              <span className="fortune-share-icon fortune-share-icon--kakao">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.48 3 2 6.42 2 10.6c0 2.7 1.76 5.05 4.4 6.39-.14.52-.9 3.34-.93 3.56 0 0-.02.16.08.22.1.06.22.03.22.03.3-.04 3.44-2.24 3.98-2.62.72.1 1.47.16 2.25.16 5.52 0 10-3.42 10-7.74C22 6.42 17.52 3 12 3z"/></svg>
-              </span>
-              <span className="fortune-share-icon-label">카카오톡</span>
-            </button>
             <button className="fortune-share-icon-btn" type="button" onClick={shareViaTwitter} aria-label="X">
               <span className="fortune-share-icon fortune-share-icon--x">
                 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
               </span>
               <span className="fortune-share-icon-label">X</span>
-            </button>
-            <button className="fortune-share-icon-btn" type="button" onClick={shareViaInstagram} aria-label="인스타그램">
-              <span className="fortune-share-icon fortune-share-icon--insta">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-              </span>
-              <span className="fortune-share-icon-label">인스타</span>
             </button>
             <button className="fortune-share-icon-btn" type="button" onClick={() => saveShareImage()} aria-label="저장">
               <span className="fortune-share-icon fortune-share-icon--save">
@@ -778,11 +695,11 @@ export default function HomePage() {
               </span>
               <span className="fortune-share-icon-label">저장</span>
             </button>
-            <button className="fortune-share-icon-btn" type="button" onClick={() => copyText(getSharePayload().shareUrl, "링크를 복사했어요.")} aria-label="링크 복사">
-              <span className="fortune-share-icon fortune-share-icon--link">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+            <button className="fortune-share-icon-btn" type="button" onClick={shareNative} aria-label="공유">
+              <span className="fortune-share-icon fortune-share-icon--share">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
               </span>
-              <span className="fortune-share-icon-label">링크</span>
+              <span className="fortune-share-icon-label">공유</span>
             </button>
           </div>
         </section>
