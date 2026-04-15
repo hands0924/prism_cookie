@@ -2,13 +2,17 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { composeOutboundMessage } from "../lib/outbound-message";
 
-test("composeOutboundMessage injects name and mapped interests", () => {
+test("composeOutboundMessage injects name, type info, and interests", () => {
   const msg = composeOutboundMessage({
     name: "test",
+    typeName: "포근한 팬케이크",
+    shortDesc: "몸과 마음의 안전을 누구보다 소중히 여기는 당신은, 나를 먼저 돌보는 것이 진짜 용기라는 걸 아는 사람이에요.",
     interests: ["보험상담", "채용/이직"]
   });
 
-  assert.match(msg, /\[포용적 금융서비스, 프리즘지점\]test님,/);
-  assert.match(msg, /보험상담을 의뢰하고 싶어요!, 채용\/이직을 알아보고 싶어요!/);
-  assert.match(msg, /www\.instagram\.com\/prism\.fin/);
+  assert.match(msg, /test님, 오늘의 미래 레시피가 도착했어요/);
+  assert.match(msg, /포근한 팬케이크 타입!/);
+  assert.match(msg, /보험상담, 채용\/이직/);
+  assert.match(msg, /instagram\.com\/prism\.fin/);
+  assert.match(msg, /litt\.ly\/prism\.fin/);
 });

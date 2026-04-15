@@ -8,14 +8,6 @@ function esc(s: string): string {
     .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
-const PILL: Record<string, { bg: string; fg: string }> = {
-  크루아상: { bg: "#FFF0D6", fg: "#9A7020" },
-  통밀식빵: { bg: "#F4E8D8", fg: "#5C4828" },
-  팬케이크: { bg: "#FFE4DA", fg: "#C44E28" },
-  프레첼: { bg: "#F6E8D4", fg: "#7A4810" },
-  브리오슈: { bg: "#FFF0DA", fg: "#8C5C28" },
-};
-
 export async function GET(_: Request, context: { params: Promise<{ submissionId: string }> }) {
   const { submissionId } = await context.params;
   const url = new URL(_.url);
@@ -23,7 +15,7 @@ export async function GET(_: Request, context: { params: Promise<{ submissionId:
   const supabase = getServiceSupabaseClient();
   const { data } = await supabase
     .from("submissions")
-    .select("id, name, needed_thing, generated_message")
+    .select("id, name, concern, protect_target, generated_message")
     .eq("id", submissionId)
     .single();
 
@@ -31,12 +23,11 @@ export async function GET(_: Request, context: { params: Promise<{ submissionId:
     return new Response("<h1>Not Found</h1>", { status: 404, headers: { "Content-Type": "text/html; charset=utf-8" } });
   }
 
-  const meta = getBreadMeta(data.needed_thing);
+  const meta = getBreadMeta(data.concern, data.protect_target);
   const lines = data.generated_message.split("\n").map((l: string) => l.trim()).filter(Boolean);
   const desc = lines[0] ?? "당신의 포춘쿠키 메시지를 확인해보세요.";
   const pageUrl = `${origin}/r/${encodeURIComponent(submissionId)}`;
   const imageUrl = `${origin}/api/og/${encodeURIComponent(submissionId)}`;
-  const pill = PILL[meta.breadName] ?? { bg: "#FFE4DA", fg: "#C44E28" };
   const msgHtml = lines.map((l: string) => `<p>${esc(l)}</p>`).join("");
 
   const html = `<!doctype html>
@@ -95,8 +86,6 @@ body::before{
 .type-emoji{font-size:52px;line-height:1;margin-bottom:12px;
   filter:drop-shadow(0 0 20px rgba(${meta.breadName === '크루아상' ? '192,139,48' : meta.breadName === '팬케이크' ? '232,100,62' : '158,94,34'},.12))}
 .type-name{font-size:22px;font-weight:800;margin-bottom:12px}
-.type-pill{display:inline-block;background:${pill.bg};color:${pill.fg};
-  font-size:13px;font-weight:700;padding:5px 14px;border-radius:20px;margin-bottom:14px}
 .type-desc{font-size:14px;color:#8B7B6E;line-height:1.65;max-width:360px;margin:0 auto}
 
 /* Prismatic divider */
@@ -150,7 +139,6 @@ body::before{
   <div class="type">
     <div class="type-emoji">${esc(meta.typeEmoji)}</div>
     <div class="type-name">${esc(meta.typeName)} 타입</div>
-    <div class="type-pill">오늘의 빵: ${esc(meta.breadName)}</div>
     <div class="type-desc">${esc(meta.typeDesc)}</div>
   </div>
   <div class="prism-line"></div>
@@ -162,7 +150,7 @@ body::before{
       <span style="background:#FFD166"></span>
       <span style="background:#7BDFF2"></span>
     </div>
-    <div class="foot-text">퀴어문화축제에서 만나는 프리즘지점</div>
+    <div class="foot-text">포용적 금융서비스, 프리즘지점</div>
     <div class="foot-handle">@prism.fin</div>
   </div>
   <a class="cta" href="${esc(origin)}">🍞 나도 해보기</a>

@@ -1,4 +1,4 @@
-import { getBreadName, getResultType, getTypeProfile } from "@/lib/bread";
+import { getBreadMeta } from "@/lib/bread";
 import { buildShareSvg } from "@/lib/image";
 import { composeOutboundMessage } from "@/lib/outbound-message";
 import { sendSolapiText } from "@/lib/solapi";
@@ -224,7 +224,7 @@ export async function processMessageJobs(batch: number) {
     async (job): Promise<{ id: string; status: string; error?: string }> => {
       const { data: submission, error: subError } = await supabase
         .from("submissions")
-        .select("id, name, phone, interests, generated_message")
+        .select("id, name, phone, concern, protect_target, interests, generated_message")
         .eq("id", job.submission_id)
         .single();
 
@@ -248,11 +248,14 @@ export async function processMessageJobs(batch: number) {
       }
 
       try {
+        const msgMeta = getBreadMeta(submission.concern, submission.protect_target);
         const providerResponse = await withTimeout(
           sendSolapiText({
             to: submission.phone,
             text: composeOutboundMessage({
               name: submission.name,
+              typeName: msgMeta.typeName,
+              shortDesc: msgMeta.shortDesc,
               interests: submission.interests
             })
           }),
@@ -335,7 +338,7 @@ export async function processShareImageJobs(batch: number) {
     async (job): Promise<{ id: string; status: string; key?: string; error?: string }> => {
       const { data: submission, error: subError } = await supabase
         .from("submissions")
-        .select("id, name, needed_thing, generated_message")
+        .select("id, name, concern, protect_target, needed_thing, generated_message")
         .eq("id", job.submission_id)
         .single();
 
@@ -358,22 +361,18 @@ export async function processShareImageJobs(batch: number) {
         return { id: job.id, status: isFinal ? "FAILED" : "RETRY", error: "submission_not_found" };
       }
 
-      const title = submission.needed_thing
-        ? `${submission.name}님의 결과: ${submission.needed_thing}`
-        : `${submission.name}님의 포춘쿠키 결과`;
+      const imgMeta = getBreadMeta(submission.concern, submission.protect_target);
+      const title = `${submission.name}님의 미래 레시피`;
       const lines = submission.generated_message
         .split("\n")
         .map((line: string) => line.trim())
         .filter(Boolean);
-      const breadName = getBreadName(submission.needed_thing);
-      const resultType = getResultType(submission.needed_thing);
-      const profile = getTypeProfile(submission.needed_thing);
       const svg = buildShareSvg({
         title,
-        breadName,
-        resultType,
-        typeName: profile.typeName,
-        typeEmoji: profile.typeEmoji,
+        breadName: imgMeta.breadName,
+        resultType: imgMeta.resultType,
+        typeName: imgMeta.typeName,
+        typeEmoji: imgMeta.typeEmoji,
         lines
       });
       const key = `${submission.id}.svg`;
