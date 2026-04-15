@@ -17,18 +17,6 @@ export type ShareCardInput = {
   message: string[];
 };
 
-type Theme = { tagBg: string; tagText: string };
-
-const THEMES: Record<string, Theme> = {
-  크루아상: { tagBg: "#FFF0D6", tagText: "#9A7020" },
-  통밀식빵: { tagBg: "#F4E8D8", tagText: "#5C4828" },
-  팬케이크: { tagBg: "#FFE4DA", tagText: "#C44E28" },
-  프레첼: { tagBg: "#F6E8D4", tagText: "#7A4810" },
-  브리오슈: { tagBg: "#FFF0DA", tagText: "#8C5C28" },
-};
-const DEFAULT_THEME: Theme = { tagBg: "#FFE4DA", tagText: "#C44E28" };
-function getTheme(b: string): Theme { return THEMES[b] ?? DEFAULT_THEME; }
-
 const W = 1080;
 const H = 1350;
 const FONT = '"Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif';
@@ -74,20 +62,6 @@ function drawPrismaticBar(ctx: CanvasRenderingContext2D, x: number, y: number, w
   ctx.fill();
 }
 
-function drawPill(ctx: CanvasRenderingContext2D, text: string, cx: number, cy: number, bg: string, fg: string, fs: number) {
-  ctx.font = `700 ${fs}px ${FONT}`;
-  const m = ctx.measureText(text);
-  const pw = m.width + fs * 1.4;
-  const ph = fs * 2;
-  roundRect(ctx, cx - pw / 2, cy - ph / 2, pw, ph, ph / 2);
-  ctx.fillStyle = bg;
-  ctx.fill();
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillStyle = fg;
-  ctx.fillText(text, cx, cy + 1);
-}
-
 function diamond(ctx: CanvasRenderingContext2D, x: number, y: number, s: number, color: string) {
   ctx.save();
   ctx.translate(x, y);
@@ -110,7 +84,6 @@ export async function generateShareCardPng(input: ShareCardInput): Promise<{
     document.fonts.load(`400 28px ${FONT}`),
   ]);
 
-  const theme = getTheme(input.breadName);
   const DPR = 2;
   const canvas = document.createElement("canvas");
   canvas.width = W * DPR;
@@ -152,7 +125,6 @@ export async function generateShareCardPng(input: ShareCardInput): Promise<{
     2 + 40 +                             // rule + gap
     90 + 20 +                            // emoji + gap
     40 + 20 +                            // type name + gap
-    44 + 20 +                            // pill + gap
     descLines.length * descLineH + 32 +  // desc + gap
     6 + 28 +                             // prismatic divider + gap
     18 + 24 +                            // FORTUNE label + gap
@@ -209,11 +181,7 @@ export async function generateShareCardPng(input: ShareCardInput): Promise<{
   ctx.fillText(`${input.typeName} 타입`, CX, y + 20);
   y += 40 + 20;
 
-  /* ── 8. Pill ── */
-  drawPill(ctx, `오늘의 빵: ${input.breadName}`, CX, y + 22, theme.tagBg, theme.tagText, 22);
-  y += 44 + 20;
-
-  /* ── 9. Description ── */
+  /* ── 8. Description ── */
   ctx.font = `400 26px ${FONT}`;
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = "#8B7B6E";
@@ -275,7 +243,7 @@ export async function generateShareCardPng(input: ShareCardInput): Promise<{
   /* ── 14. Footer text ── */
   ctx.font = `600 20px ${FONT}`;
   ctx.fillStyle = "#8B776D";
-  ctx.fillText("퀴어문화축제에서 만나는 프리즘지점", CX, y + 12);
+  ctx.fillText("포용적 금융서비스, 프리즘지점", CX, y + 12);
   y += 24 + 4;
 
   ctx.font = `400 18px ${FONT}`;

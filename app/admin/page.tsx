@@ -3,7 +3,7 @@ import type { Route } from "next";
 import { cookies } from "next/headers";
 import { ADMIN_AUTH_COOKIE_NAME, isAdminPasswordConfigured, isAuthorizedAdminCookieValue } from "@/lib/admin-auth";
 import { getAdminSubmissions } from "@/lib/admin-submissions";
-import { getOpsSnapshot } from "@/lib/ops";
+import { getDailySubmissionCounts, getOpsSnapshot } from "@/lib/ops";
 import { getPublicStorageUrl } from "@/lib/supabase";
 
 export const runtime = "nodejs";
@@ -132,14 +132,14 @@ export default async function AdminPage({ searchParams }: PageProps) {
         <section className="card">
           <div className="hero" />
           <div className="content">
-            <h1 className="title">Admin Dashboard</h1>
+            <h1 className="title">관리자 대시보드</h1>
             <p className="desc">관리자 비밀번호를 입력하세요.</p>
             {authMisconfigured ? <p className="error">`ADMIN_PASSWORD` 환경변수가 필요합니다.</p> : null}
             {authFailed ? <p className="error">비밀번호가 올바르지 않습니다.</p> : null}
             <form className="admin-auth-form" method="POST" action="/api/admin/login">
               <input type="hidden" name="next" value="/admin" />
               <label className="admin-export-field">
-                Password
+                비밀번호
                 <input type="password" name="password" inputMode="numeric" autoComplete="current-password" required />
               </label>
               <button type="submit" className="ghost-btn">
@@ -157,10 +157,11 @@ export default async function AdminPage({ searchParams }: PageProps) {
   const exportFrom = firstParam(params.from) ?? "";
   const exportTo = firstParam(params.to) ?? "";
 
-  const [snapshot, recentRows, allRowsWithNext] = await Promise.all([
+  const [snapshot, recentRows, allRowsWithNext, dailyCounts] = await Promise.all([
     getOpsSnapshot(),
     tab === "recent" ? getAdminSubmissions(100) : Promise.resolve([]),
-    tab === "all" ? getAdminSubmissions({ limit: ALL_PAGE_SIZE + 1, offset: (page - 1) * ALL_PAGE_SIZE }) : Promise.resolve([])
+    tab === "all" ? getAdminSubmissions({ limit: ALL_PAGE_SIZE + 1, offset: (page - 1) * ALL_PAGE_SIZE }) : Promise.resolve([]),
+    getDailySubmissionCounts(30)
   ]);
 
   const allRows = allRowsWithNext.slice(0, ALL_PAGE_SIZE);
@@ -181,26 +182,50 @@ export default async function AdminPage({ searchParams }: PageProps) {
           </form>
           <div className="ops-grid">
             <div>
-              <div className="ops-label">Total Submissions</div>
+              <div className="ops-label">전체 제출</div>
               <div className="ops-value">{snapshot.submissions.total}</div>
             </div>
             <div>
-              <div className="ops-label">Last 5m</div>
+              <div className="ops-label">최근 5분</div>
               <div className="ops-value">{snapshot.submissions.last5m}</div>
             </div>
             <div>
-              <div className="ops-label">Message Sent</div>
+              <div className="ops-label">발송 완료</div>
               <div className="ops-value">{snapshot.submissions.sent}</div>
             </div>
             <div>
-              <div className="ops-label">Message Pending</div>
+              <div className="ops-label">발송 대기</div>
               <div className="ops-value">{snapshot.submissions.pending}</div>
             </div>
             <div>
-              <div className="ops-label">Message Failed</div>
+              <div className="ops-label">발송 실패</div>
               <div className="ops-value">{snapshot.submissions.failed}</div>
             </div>
           </div>
+
+          {dailyCounts.length > 0 ? (
+            <>
+              <h2 style={{ marginTop: 24 }}>일별 제출 현황</h2>
+              <div className="admin-table-wrap">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>날짜</th>
+                      <th>제출 건수</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dailyCounts.map((row) => (
+                      <tr key={row.date}>
+                        <td className="mono">{row.date}</td>
+                        <td className="mono">{row.count}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          ) : null}
         </div>
       </section>
 
@@ -241,7 +266,7 @@ export default async function AdminPage({ searchParams }: PageProps) {
                 ) : (
                   <span className="admin-pagination-placeholder" />
                 )}
-                <span className="mono">Page {page}</span>
+                <span className="mono">{page}페이지</span>
                 {hasNextPage ? (
                   <a className="ghost-btn" href={adminTabHref("all", page + 1)}>
                     다음 페이지

@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import { DEFAULT_TYPE_DESC, DEFAULT_TYPE_EMOJI, DEFAULT_TYPE_NAME, getTypeProfile } from "@/lib/bread";
+import { DEFAULT_TYPE_DESC, DEFAULT_TYPE_EMOJI, DEFAULT_TYPE_NAME, getBreadMeta } from "@/lib/bread";
 import { generateShareCardPng, type ShareCardInput } from "@/lib/share-canvas";
 
 type Option = {
@@ -105,7 +105,10 @@ export default function HomePage() {
           typeEmoji: submitResult?.typeEmoji ?? DEFAULT_TYPE_EMOJI,
           typeDesc: submitResult?.typeDesc ?? DEFAULT_TYPE_DESC
         }
-      : getTypeProfile(form.neededThing);
+      : (() => {
+          const meta = getBreadMeta(form.concern, form.protectTarget);
+          return { typeName: meta.typeName, typeEmoji: meta.typeEmoji, typeDesc: meta.typeDesc };
+        })();
 
   const [shareAsset, setShareAsset] = useState<{
     file: File | null;
@@ -303,7 +306,7 @@ export default function HomePage() {
   }
 
   function getShareText(shareUrl: string): string {
-    return `퀴어문화축제 프리즘지점 부스에서\n나의 미래 레시피를 만들어보세요 🌈\n\n포용적 금융서비스 프리즘지점\n${shareUrl}`;
+    return `🌈프리즘지점과 미래레시피 그리기\n\n포용적 금융서비스, 프리즘지점\n${shareUrl}`;
   }
 
   function getSharePayload(): { title: string; shareUrl: string; shareText: string } {
@@ -378,13 +381,13 @@ export default function HomePage() {
 
   async function shareNative() {
     if (!submitResult) return;
-    const { shareUrl } = getSharePayload();
+    const { shareUrl, shareText } = getSharePayload();
     if (!navigator.share) {
       await copyText(shareUrl, "공유 기능이 없어 링크를 복사했어요.");
       return;
     }
     try {
-      await navigator.share({ url: shareUrl });
+      await navigator.share({ text: shareText, url: shareUrl });
     } catch {
       // User cancelled — no action needed
     }
@@ -640,17 +643,8 @@ export default function HomePage() {
 
       <section className={`fortune-section fortune-result ${step === 6 ? "active" : ""}`}>
         <div className="fortune-share-capture">
-          <div className="fortune-result-label">Prism Future Recipe</div>
-          <div className="fortune-result-title">{submitResult ? `${submitResult.name}님의 미래 레시피` : "당신의 미래 레시피"}</div>
           <div className="fortune-share-preview-shell">
             {submitResult ? (() => {
-              const pill = {
-                크루아상: { bg: "#FFF0D6", fg: "#9A7020" },
-                통밀식빵: { bg: "#F4E8D8", fg: "#5C4828" },
-                팬케이크: { bg: "#FFE4DA", fg: "#C44E28" },
-                프레첼: { bg: "#F6E8D4", fg: "#7A4810" },
-                브리오슈: { bg: "#FFF0DA", fg: "#8C5C28" },
-              }[submitResult.breadName ?? ""] ?? { bg: "#FFE4DA", fg: "#C44E28" };
               const lines = (submitResult.message ?? []).map(l => l.trim()).filter(Boolean);
               return (
                 <div className="fortune-html-card">
@@ -660,9 +654,6 @@ export default function HomePage() {
                   <div className="fortune-html-card__rule" />
                   <div className="fortune-html-card__emoji">{typeProfile.typeEmoji}</div>
                   <div className="fortune-html-card__type">{typeProfile.typeName} 타입</div>
-                  <div className="fortune-html-card__pill" style={{ background: pill.bg, color: pill.fg }}>
-                    오늘의 빵: {submitResult.breadName}
-                  </div>
                   <div className="fortune-html-card__desc">{typeProfile.typeDesc}</div>
                   <div className="fortune-html-card__divider" />
                   <div className="fortune-html-card__fortune-label">FORTUNE</div>
@@ -675,7 +666,7 @@ export default function HomePage() {
                       <span style={{ background: "#FFD166" }} />
                       <span style={{ background: "#7BDFF2" }} />
                     </div>
-                    <div className="fortune-html-card__footer-text">퀴어문화축제에서 만나는 프리즘지점</div>
+                    <div className="fortune-html-card__footer-text">포용적 금융서비스, 프리즘지점</div>
                     <div className="fortune-html-card__handle">@prism.fin</div>
                   </div>
                 </div>

@@ -19,11 +19,12 @@ const fontRegularPromise = fetch(
 });
 
 const PILL: Record<string, { bg: string; fg: string }> = {
-  크루아상: { bg: "#FFF0D6", fg: "#9A7020" },
-  통밀식빵: { bg: "#F4E8D8", fg: "#5C4828" },
   팬케이크: { bg: "#FFE4DA", fg: "#C44E28" },
-  프레첼: { bg: "#F6E8D4", fg: "#7A4810" },
-  브리오슈: { bg: "#FFF0DA", fg: "#8C5C28" },
+  크루아상: { bg: "#FFF0D6", fg: "#9A7020" },
+  베이글: { bg: "#F4E8D8", fg: "#7A5C30" },
+  와플: { bg: "#FFF3D6", fg: "#8A6820" },
+  바게트: { bg: "#F6E8D4", fg: "#7A4810" },
+  식빵: { bg: "#FFF0DA", fg: "#8C5C28" },
 };
 
 export async function GET(
@@ -34,7 +35,7 @@ export async function GET(
   const supabase = getServiceSupabaseClient();
   const { data } = await supabase
     .from("submissions")
-    .select("id, name, needed_thing, generated_message")
+    .select("id, name, concern, protect_target, generated_message")
     .eq("id", submissionId)
     .single();
 
@@ -47,7 +48,7 @@ export async function GET(
     .map((l: string) => l.trim())
     .filter(Boolean);
   const teaser = lines[0] ?? "";
-  const meta = getBreadMeta(data.needed_thing);
+  const meta = getBreadMeta(data.concern, data.protect_target);
   const title = `${data.name}님의 미래 레시피`;
   const pill = PILL[meta.breadName] ?? { bg: "#FFE4DA", fg: "#C44E28" };
 
@@ -150,39 +151,9 @@ export async function GET(
           {/* Rule */}
           <div style={{ width: 200, height: 1, backgroundColor: "#E8E0D6", display: "flex", marginBottom: 12 }} />
 
-          {/* Type + pill row */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              marginBottom: 8,
-            }}
-          >
-            <span style={{ fontSize: 20, fontWeight: 700, color: "#1A1410" }}>
-              {meta.typeName} 타입
-            </span>
-            <span
-              style={{
-                width: 4,
-                height: 4,
-                backgroundColor: "#D0C8BE",
-                borderRadius: 2,
-                display: "flex",
-              }}
-            />
-            <span
-              style={{
-                fontSize: 16,
-                fontWeight: 700,
-                color: pill.fg,
-                backgroundColor: pill.bg,
-                padding: "5px 16px",
-                borderRadius: 18,
-              }}
-            >
-              오늘의 빵: {meta.breadName}
-            </span>
+          {/* Type name */}
+          <div style={{ fontSize: 20, fontWeight: 700, color: "#1A1410", display: "flex", marginBottom: 8 }}>
+            {meta.typeName} 타입
           </div>
 
           {/* Type description */}
@@ -230,7 +201,7 @@ export async function GET(
             <div style={{ width: 8, height: 8, backgroundColor: "#FFD166", display: "flex", transform: "rotate(45deg)" }} />
             <div style={{ width: 8, height: 8, backgroundColor: "#7BDFF2", display: "flex", transform: "rotate(45deg)" }} />
             <span style={{ fontSize: 14, color: "#8B7B6E", fontWeight: 400, marginLeft: 6 }}>
-              퀴어문화축제에서 만나는 프리즘지점 · @prism.fin
+              포용적 금융서비스, 프리즘지점 · @prism.fin
             </span>
           </div>
         </div>

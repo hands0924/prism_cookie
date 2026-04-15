@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse, after } from "next/server";
 import { ZodError } from "zod";
-import { getBreadName, getResultType, getTypeProfile } from "@/lib/bread";
+import { getBreadMeta } from "@/lib/bread";
 import { generateFortuneMessage } from "@/lib/fortune";
 import { buildShareSvg } from "@/lib/image";
 import { composeOutboundMessage } from "@/lib/outbound-message";
@@ -125,6 +125,7 @@ type FastSubmission = {
   typeName: string;
   typeEmoji: string;
   typeDesc: string;
+  shortDesc: string;
   interests: string[];
   generatedMessage: string;
 };
@@ -139,6 +140,8 @@ async function processFastLaneForSubmission(input: FastSubmission) {
       to: input.phone,
       text: composeOutboundMessage({
         name: input.name,
+        typeName: input.typeName,
+        shortDesc: input.shortDesc,
         interests: input.interests
       })
     }),
@@ -313,22 +316,22 @@ export async function POST(req: Request) {
       if (insertError.code === "23505") {
         const { data: replay, error: replayError } = await supabase
           .from("submissions")
-          .select("id, name, needed_thing, generated_message")
+          .select("id, name, concern, protect_target, generated_message")
           .eq("client_request_id", clientRequestId)
           .maybeSingle();
         if (!replayError && replay) {
-          const profile = getTypeProfile(replay.needed_thing);
+          const replayMeta = getBreadMeta(replay.concern, replay.protect_target);
           await ensureSubmissionEvent(replay.id);
           return NextResponse.json({
             success: true,
             name: replay.name,
             message: replay.generated_message.split("\n"),
             submissionId: replay.id,
-            breadName: getBreadName(replay.needed_thing),
-            resultType: getResultType(replay.needed_thing),
-            typeName: profile.typeName,
-            typeEmoji: profile.typeEmoji,
-            typeDesc: profile.typeDesc,
+            breadName: replayMeta.breadName,
+            resultType: replayMeta.resultType,
+            typeName: replayMeta.typeName,
+            typeEmoji: replayMeta.typeEmoji,
+            typeDesc: replayMeta.typeDesc,
             replay: true
           });
         }
@@ -345,17 +348,18 @@ export async function POST(req: Request) {
     if (shouldNudge) {
       after(async () => {
         try {
-          const profile = getTypeProfile(payload.neededThing);
+          const fastMeta = getBreadMeta(payload.concern, payload.protectTarget);
           await processFastLaneForSubmission({
             id: submissionId,
             name: payload.name,
             phone,
             neededThing: payload.neededThing,
-            breadName: getBreadName(payload.neededThing),
-            resultType: getResultType(payload.neededThing),
-            typeName: profile.typeName,
-            typeEmoji: profile.typeEmoji,
-            typeDesc: profile.typeDesc,
+            breadName: fastMeta.breadName,
+            resultType: fastMeta.resultType,
+            typeName: fastMeta.typeName,
+            typeEmoji: fastMeta.typeEmoji,
+            typeDesc: fastMeta.typeDesc,
+            shortDesc: fastMeta.shortDesc,
             interests: payload.interests,
             generatedMessage: messageText
           });
@@ -376,17 +380,17 @@ export async function POST(req: Request) {
       });
     }
 
-    const profile = getTypeProfile(payload.neededThing);
+    const responseMeta = getBreadMeta(payload.concern, payload.protectTarget);
     return NextResponse.json({
       success: true,
       name: payload.name,
       message: messageLines,
       submissionId,
-      breadName: getBreadName(payload.neededThing),
-      resultType: getResultType(payload.neededThing),
-      typeName: profile.typeName,
-      typeEmoji: profile.typeEmoji,
-      typeDesc: profile.typeDesc
+      breadName: responseMeta.breadName,
+      resultType: responseMeta.resultType,
+      typeName: responseMeta.typeName,
+      typeEmoji: responseMeta.typeEmoji,
+      typeDesc: responseMeta.typeDesc
     });
   } catch (error) {
     if (error instanceof ZodError) {

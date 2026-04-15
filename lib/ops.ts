@@ -94,6 +94,36 @@ async function buildQueueSnapshot(table: string, doneStatus: "DONE" | "SENT"): P
   };
 }
 
+export type DailyCount = {
+  date: string;
+  count: number;
+};
+
+export async function getDailySubmissionCounts(days: number = 30): Promise<DailyCount[]> {
+  const supabase = getServiceSupabaseClient();
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase
+    .from("submissions")
+    .select("submitted_at")
+    .gte("submitted_at", since)
+    .order("submitted_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  const buckets: Record<string, number> = {};
+  for (const row of data ?? []) {
+    const kst = new Date(new Date(row.submitted_at).getTime() + 9 * 60 * 60 * 1000);
+    const dateKey = `${kst.getUTCFullYear()}-${String(kst.getUTCMonth() + 1).padStart(2, "0")}-${String(kst.getUTCDate()).padStart(2, "0")}`;
+    buckets[dateKey] = (buckets[dateKey] ?? 0) + 1;
+  }
+
+  return Object.entries(buckets)
+    .map(([date, count]) => ({ date, count }))
+    .sort((a, b) => b.date.localeCompare(a.date));
+}
+
 export async function getOpsSnapshot(): Promise<OpsSnapshot> {
   const supabase = getServiceSupabaseClient();
   const [{ count: totalSubmissions, error: totalError }, last5m, sent, failed, pending, submissionEvents, messageJobs, shareImageJobs] =
