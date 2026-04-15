@@ -381,13 +381,13 @@ export default function HomePage() {
 
   async function shareNative() {
     if (!submitResult) return;
-    const { shareUrl, shareText } = getSharePayload();
+    const { shareUrl } = getSharePayload();
     if (!navigator.share) {
       await copyText(shareUrl, "공유 기능이 없어 링크를 복사했어요.");
       return;
     }
     try {
-      await navigator.share({ text: shareText, url: shareUrl });
+      await navigator.share({ text: "🌈프리즘지점과 미래레시피 그리기", url: shareUrl });
     } catch {
       // User cancelled — no action needed
     }
