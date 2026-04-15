@@ -393,6 +393,22 @@ export default function HomePage() {
     }
   }
 
+  async function shareViaInstagram() {
+    if (!submitResult) return;
+    try {
+      const shareFile = await getOrCreateShareImageFile();
+      if (navigator.share && navigator.canShare?.({ files: [shareFile] })) {
+        await navigator.share({ files: [shareFile] });
+      } else {
+        // Fallback: save the image so user can manually post to Instagram
+        await saveShareImage();
+        showToast("이미지를 저장했어요. 인스타그램에서 직접 업로드해주세요.");
+      }
+    } catch {
+      showToast("이미지 공유에 실패했어요.");
+    }
+  }
+
   async function shareViaTwitter() {
     const { shareUrl } = getSharePayload();
     // Compose tweet text — keep short so Twitter card (OG image) shows prominently
@@ -690,6 +706,12 @@ export default function HomePage() {
                 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
               </span>
               <span className="fortune-share-icon-label">X</span>
+            </button>
+            <button className="fortune-share-icon-btn" type="button" onClick={shareViaInstagram} aria-label="인스타그램">
+              <span className="fortune-share-icon fortune-share-icon--instagram">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.17.054 1.97.24 2.43.403a4.088 4.088 0 011.47.957c.453.453.784.907.957 1.47.163.46.35 1.26.403 2.43.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.054 1.17-.24 1.97-.403 2.43a4.088 4.088 0 01-.957 1.47 4.088 4.088 0 01-1.47.957c-.46.163-1.26.35-2.43.403-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.17-.054-1.97-.24-2.43-.403a4.088 4.088 0 01-1.47-.957 4.088 4.088 0 01-.957-1.47c-.163-.46-.35-1.26-.403-2.43C2.175 15.584 2.163 15.204 2.163 12s.012-3.584.07-4.85c.054-1.17.24-1.97.403-2.43a4.088 4.088 0 01.957-1.47A4.088 4.088 0 015.063 2.3c.46-.163 1.26-.35 2.43-.403C8.759 1.838 9.139 1.826 12 1.826zm0-1.663C8.741.5 8.333.514 7.053.573 5.775.632 4.905.823 4.14 1.104a5.751 5.751 0 00-2.08 1.356A5.751 5.751 0 00.704 4.54C.423 5.305.232 6.175.173 7.453.114 8.733.1 9.141.1 12.4s.014 3.668.073 4.948c.059 1.278.25 2.148.531 2.913a5.751 5.751 0 001.356 2.08 5.751 5.751 0 002.08 1.356c.765.281 1.635.472 2.913.531C8.333 24.286 8.741 24.3 12 24.3s3.668-.014 4.948-.073c1.278-.059 2.148-.25 2.913-.531a5.751 5.751 0 002.08-1.356 5.751 5.751 0 001.356-2.08c.281-.765.472-1.635.531-2.913.059-1.28.073-1.688.073-4.948s-.014-3.668-.073-4.948c-.059-1.278-.25-2.148-.531-2.913a5.751 5.751 0 00-1.356-2.08A5.751 5.751 0 0019.86.704C19.095.423 18.225.232 16.947.173 15.667.114 15.259.1 12 .1zM12 6.065a6.335 6.335 0 100 12.67 6.335 6.335 0 000-12.67zm0 10.45a4.115 4.115 0 110-8.23 4.115 4.115 0 010 8.23zm6.538-10.727a1.48 1.48 0 11-2.96 0 1.48 1.48 0 012.96 0z"/></svg>
+              </span>
+              <span className="fortune-share-icon-label">인스타</span>
             </button>
             <button className="fortune-share-icon-btn" type="button" onClick={() => saveShareImage()} aria-label="저장">
               <span className="fortune-share-icon fortune-share-icon--save">
