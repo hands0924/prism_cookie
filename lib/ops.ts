@@ -96,7 +96,10 @@ async function buildQueueSnapshot(table: string, doneStatus: "DONE" | "SENT"): P
 
 export type DailyCount = {
   date: string;
-  count: number;
+  total: number;
+  sent: number;
+  pending: number;
+  failed: number;
 };
 
 export async function getDailySubmissionCounts(days: number = 30): Promise<DailyCount[]> {
@@ -104,7 +107,7 @@ export async function getDailySubmissionCounts(days: number = 30): Promise<Daily
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase
     .from("submissions")
-    .select("submitted_at")
+    .select("submitted_at, send_status")
     .gte("submitted_at", since)
     .order("submitted_at", { ascending: false });
 
@@ -112,15 +115,22 @@ export async function getDailySubmissionCounts(days: number = 30): Promise<Daily
     throw error;
   }
 
-  const buckets: Record<string, number> = {};
+  const buckets: Record<string, { total: number; sent: number; pending: number; failed: number }> = {};
   for (const row of data ?? []) {
     const kst = new Date(new Date(row.submitted_at).getTime() + 9 * 60 * 60 * 1000);
     const dateKey = `${kst.getUTCFullYear()}-${String(kst.getUTCMonth() + 1).padStart(2, "0")}-${String(kst.getUTCDate()).padStart(2, "0")}`;
-    buckets[dateKey] = (buckets[dateKey] ?? 0) + 1;
+    if (!buckets[dateKey]) {
+      buckets[dateKey] = { total: 0, sent: 0, pending: 0, failed: 0 };
+    }
+    buckets[dateKey].total += 1;
+    const status = (row.send_status ?? "").toUpperCase();
+    if (status === "SENT") buckets[dateKey].sent += 1;
+    else if (status === "FAILED") buckets[dateKey].failed += 1;
+    else buckets[dateKey].pending += 1;
   }
 
   return Object.entries(buckets)
-    .map(([date, count]) => ({ date, count }))
+    .map(([date, counts]) => ({ date, ...counts }))
     .sort((a, b) => b.date.localeCompare(a.date));
 }
 

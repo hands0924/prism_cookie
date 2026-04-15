@@ -205,20 +205,26 @@ export default async function AdminPage({ searchParams }: PageProps) {
 
           {dailyCounts.length > 0 ? (
             <>
-              <h2 style={{ marginTop: 24 }}>일별 제출 현황</h2>
+              <h2 style={{ marginTop: 24, marginBottom: 8 }}>일별 제출 현황</h2>
               <div className="admin-table-wrap">
-                <table className="admin-table">
+                <table className="admin-table" style={{ tableLayout: "fixed" }}>
                   <thead>
                     <tr>
-                      <th>날짜</th>
-                      <th>제출 건수</th>
+                      <th style={{ width: "30%" }}>날짜</th>
+                      <th style={{ width: "17.5%", textAlign: "right" }}>전체 제출</th>
+                      <th style={{ width: "17.5%", textAlign: "right" }}>발송 완료</th>
+                      <th style={{ width: "17.5%", textAlign: "right" }}>발송 대기</th>
+                      <th style={{ width: "17.5%", textAlign: "right" }}>발송 실패</th>
                     </tr>
                   </thead>
                   <tbody>
                     {dailyCounts.map((row) => (
                       <tr key={row.date}>
                         <td className="mono">{row.date}</td>
-                        <td className="mono">{row.count}</td>
+                        <td className="mono" style={{ textAlign: "right" }}>{row.total}</td>
+                        <td className="mono" style={{ textAlign: "right" }}>{row.sent}</td>
+                        <td className="mono" style={{ textAlign: "right" }}>{row.pending}</td>
+                        <td className="mono" style={{ textAlign: "right" }}>{row.failed > 0 ? <strong style={{ color: "#c0392b" }}>{row.failed}</strong> : row.failed}</td>
                       </tr>
                     ))}
                   </tbody>
