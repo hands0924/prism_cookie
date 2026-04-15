@@ -207,20 +207,27 @@ export default async function AdminPage({ searchParams }: PageProps) {
             <>
               <h2 style={{ marginTop: 24, marginBottom: 8 }}>일별 제출 현황</h2>
               <div className="admin-table-wrap">
-                <table className="admin-table" style={{ tableLayout: "fixed" }}>
+                <table className="admin-table admin-table-daily">
+                  <colgroup>
+                    <col style={{ width: "96px" }} />
+                    <col style={{ width: "88px" }} />
+                    <col style={{ width: "88px" }} />
+                    <col style={{ width: "88px" }} />
+                    <col style={{ width: "88px" }} />
+                  </colgroup>
                   <thead>
                     <tr>
-                      <th style={{ width: "20%" }}>날짜</th>
-                      <th style={{ width: "20%", textAlign: "right" }}>전체 제출</th>
-                      <th style={{ width: "20%", textAlign: "right" }}>발송 완료</th>
-                      <th style={{ width: "20%", textAlign: "right" }}>발송 대기</th>
-                      <th style={{ width: "20%", textAlign: "right" }}>발송 실패</th>
+                      <th>날짜</th>
+                      <th style={{ textAlign: "right" }}>전체</th>
+                      <th style={{ textAlign: "right" }}>완료</th>
+                      <th style={{ textAlign: "right" }}>대기</th>
+                      <th style={{ textAlign: "right" }}>실패</th>
                     </tr>
                   </thead>
                   <tbody>
                     {dailyCounts.map((row) => (
                       <tr key={row.date}>
-                        <td className="mono">{row.date}</td>
+                        <td className="mono admin-daily-date">{row.date}</td>
                         <td className="mono" style={{ textAlign: "right" }}>{row.total}</td>
                         <td className="mono" style={{ textAlign: "right" }}>{row.sent}</td>
                         <td className="mono" style={{ textAlign: "right" }}>{row.pending}</td>

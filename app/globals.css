@@ -202,6 +202,21 @@ textarea {
   background: #fff;
 }
 
+.admin-table-daily {
+  min-width: 448px;
+  width: auto;
+  table-layout: fixed;
+}
+
+.admin-table-daily th,
+.admin-table-daily td {
+  padding: 8px 10px;
+}
+
+.admin-daily-date {
+  white-space: nowrap;
+}
+
 .admin-table th,
 .admin-table td {
   text-align: left;
