@@ -210,6 +210,7 @@ export async function GET(
     {
       width: 1200,
       height: 630,
+      emoji: "twemoji",
       fonts: [
         { name: "Noto Sans KR", data: fontBold, style: "normal" as const, weight: 700 },
         { name: "Noto Sans KR", data: fontRegular, style: "normal" as const, weight: 400 },
