@@ -126,7 +126,7 @@ export async function getDailySubmissionCounts(days: number = 30): Promise<Daily
     const status = (row.send_status ?? "").toUpperCase();
     if (status === "SENT") buckets[dateKey].sent += 1;
     else if (status === "FAILED") buckets[dateKey].failed += 1;
-    else buckets[dateKey].pending += 1;
+    else if (status === "PENDING") buckets[dateKey].pending += 1;
   }
 
   return Object.entries(buckets)
