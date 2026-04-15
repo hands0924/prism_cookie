@@ -210,11 +210,11 @@ export default async function AdminPage({ searchParams }: PageProps) {
                 <table className="admin-table" style={{ tableLayout: "fixed" }}>
                   <thead>
                     <tr>
-                      <th style={{ width: "30%" }}>날짜</th>
-                      <th style={{ width: "17.5%", textAlign: "right" }}>전체 제출</th>
-                      <th style={{ width: "17.5%", textAlign: "right" }}>발송 완료</th>
-                      <th style={{ width: "17.5%", textAlign: "right" }}>발송 대기</th>
-                      <th style={{ width: "17.5%", textAlign: "right" }}>발송 실패</th>
+                      <th style={{ width: "20%" }}>날짜</th>
+                      <th style={{ width: "20%", textAlign: "right" }}>전체 제출</th>
+                      <th style={{ width: "20%", textAlign: "right" }}>발송 완료</th>
+                      <th style={{ width: "20%", textAlign: "right" }}>발송 대기</th>
+                      <th style={{ width: "20%", textAlign: "right" }}>발송 실패</th>
                     </tr>
                   </thead>
                   <tbody>
