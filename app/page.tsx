@@ -387,7 +387,7 @@ export default function HomePage() {
       return;
     }
     try {
-      await navigator.share({ text: "🌈프리즘지점과 미래레시피 그리기", url: shareUrl });
+      await navigator.share({ text: `🌈프리즘지점과 미래레시피 그리기\n${shareUrl}` });
     } catch {
       // User cancelled — no action needed
     }
